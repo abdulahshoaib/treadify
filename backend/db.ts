@@ -11,8 +11,9 @@ const config: sql.config = {
         idleTimeoutMillis: 30000
     },
     options: {
+        trustedConnection: true,
         encrypt: true,
-        trustServerCertificate: false
+        trustServerCertificate: true
     }
 }
 
@@ -20,11 +21,11 @@ const pool = new sql.ConnectionPool(config)
 
 const poolPromise = pool.connect()
     .then(() => {
-        console.log("Connected to DB")
+        console.log("[DATABASE] Connected")
         return pool
     })
     .catch((err: Error) => {
-        console.error(err)
+        console.error(err.message)
         throw err
     })
 
@@ -35,9 +36,8 @@ const query = async (dbQuery: string) => {
         const res = await pool.request().query(dbQuery);
         return res.recordset
     } catch (err: any) {
-        console.error(err)
         throw err;
     }
 }
 
-export { poolPromise, query, sql }
+export { query }
