@@ -22,8 +22,7 @@
  - **Deadlines:**         A product deadlines are set based on the deadline of features
  - **Goals:**             The progress is visually shown by goals assigned to teams
  - **Progress Reports:**  Automated progress reports through the goals system. Explain how much of certian features has been developed
-
- *Github Integration
+ - ***Github Integration**
 
 # User Types
 
