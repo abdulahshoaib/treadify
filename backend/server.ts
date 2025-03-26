@@ -42,7 +42,7 @@ app.use(
         resave: false,
         saveUninitialized: false,
         cookie: {
-            secure: process.env.NODE_ENV === "production", // true only in production
+            secure: process.env.NODE_ENV === "production",
             httpOnly: true,
             sameSite: "strict",
             maxAge: 1000 * 60 * 60 * 12, //valid for 12 hours
@@ -108,6 +108,21 @@ app.post("/login", async (req, res) => {
         console.log(err.message)
         res.status(500).json({ error: "Internal Server Error" })
     }
+})
+
+app.get("/dashboard/messages", async (req, res) => {
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
+
+    const UserID = req.session.User?.id
+    const dbInsert = `
+            SELECT * FROM Messages
+            WHERE UserID = ${UserID}
+        `
+    const messages = await query(dbInsert);
+    res.json(messages)
+    console.log("[POST] " + req.url)
+    res.status(201).json({ message: "User Created" })
 })
 
 // middleware added
