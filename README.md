@@ -1,78 +1,94 @@
-<div align="center"><h1> Treadify <h1></div>
-"Technical Colaboration Platform"
+<div align="center">
+    <h1> Treadify <h1>
+    <p>"Technical Colaboration Platform"</p>
+</div>
 
+# Table of Content
 
- - Users can Signin and signup
- - User can join groups
+1. [Key Features](#key features)
+2. [User Types](#user types)
+3. [User Permissions](#user permissions)
+ - [Product Manager](#product manager)
+ - [Technical Lead](#technical lead)
+ - [Developer](#developer)
+4. [Channels](#channels)
+ - [Procduct Channels](#product channels)
+ - [Feature Chanels](#feature channels)
 
+# Key Features
+ Deadlines:         A product deadlines are set based on the deadline of features
+ Goals:             The progress is visually shown by goals assigned to teams
+ Progress Reports:  Automated progress reports through the goals system. Explain how much of certian features has been developed
+
+ *Github Integration
 
 # User Types
 
  ## Product Manager (PM)
-
- -
+ - Product managers are responsible for the delivery of a product. They are the channel owners that can create channels and add members by join code.
 
  ## Technical Lead  (TL)
+ - Work under the PM. Responsible for delivery of a feature assigned by the PM.
+
  ## Developers      (Dev)
+ - Work under the TL. Resposible of working on features assigned to them.
 
 # User Permissions
 
-## Product Manager
+ ## Product Manager
 
- - Can create product channels
- - Can depricate product channels
- - Can assign TL feature channels
+ - Can create product channel
+ - Product Manager can only have 1 channel at a time
+ - Can send messages/files/photos to the product channel
+ - Can mark a product as complete
+ - Can depricate the product channel
 
-# Channel Types
+ - Can create/update deadline for the delivery of a feature
+ - Can create goals for different features of the product & assign a feature channel to it
+ - Can assign TL to feature channels
 
- - User can create groups
- - Admin roles
- - Upload files/pictures to groups
- - User can set their profile picture, name and bio
+ - Can generate join codes
+ - Can generate progress report
 
- - Teams can view progress reports
- - Teams can set deadlines
- - Maybe git diffs and branches
- - Teams Leads can set goals
- - Teams can vote reagarding features to add etc
+ ## Technical Lead
 
- - One Team at a time can work on:
-     - 1 Product
-     - Multiple features - with each feature having it's own channel lead and members
+ - Can send messages/files/photos to the product/feature channels
+ - Can select the team of devs for the feature it was assigned
+ - Can set goals for the feature team to achieve (Not dev specific)
+ - Devs share their commits against goals, which the TL analyzes and either rejects or confirms
+ - Goal once completed cannot be reopend
+ - Progress bar increments once a goal is completed
 
-# Product Channel
- - 1 Team
- - Product Delivery date (Set/Update by Product Manager ONLY!)
- - Product Manager can depricate a Product (Kill all comms)
- - PM & TL can only send messsages to the product channels
- - Send files
- - Create Polls
- - Owner of the channel will be the product lead and tech leads will have admin rights(cannot depricate a product)
-    - Can have multiple Sub channels of Features
-    - Product Manager can assign tech lead to Features channel
-    - Each features channel will have one tech lead and members of the Product Channels
+ - Can add devs from the list of available devs from the product channel
 
-# Features Channel
- - All members can send messages
- - All members can share to progress report
- - Tech Leads can create/update/delete goals which can be completed by members
- - Members can complete those goals by attaching commits which are assessed by TLs and rejected or accepted
+ ## Developer
 
-# devs
-    - can join groups
-    - can send messages in features Channel
-    - can upload files/pictures
-    - can contribute to progress
-    - MAYBE share their git diffs/commits and explain them
+ - Can send messages/files/photos only to the feature channels
+ - Can complete the goals given by the technical lead in the features group
+ - Read messages from product channels; cannot send messages to the product channels
 
-# technical leads
-    - can create groups
-    - can generate group links to join
-    - can remove members
-    - can send messages
-    - can create polls
-    - can create deadlines
+ ## Common User Permissions
 
+ - Upload pictures
+ - Set their view name
+ - Reset their password
+ - Reset their bio
+ - cannot change username
+ - *Link Github
 
-# product manager
-    - can create groups
+# Channels
+
+ ## Product Channels
+ - Product channels focus on building product by assigning different features to different groups
+ - Need to be setup by the Product Manager. PM makes feature channels that are assigned deadlines and the one with the last deadline is the deadline of the project
+ - Dynamic report can be generated on the progress of each feature that also gives an overall view of the product's progress
+ - Goals are setup automatically by creating new feature channels. The Goal is named after the feature channel
+ - TL for the feature channel has to be unique and not already in another active feature channel
+
+ ## Feature Channels
+ - Feature channels focus on delivering features for the product
+ - TL can only add devs from the product channel that are not already in any active feature channel
+ - Goals are to be created by the Technical Leads
+ - Devs can contribute to any goal based on their work
+ - TL can reject or accept commits registered against goals
+ - Once all the goals are achieved, the feature channel is made inactive and the goal is marked as complete in the product channel
