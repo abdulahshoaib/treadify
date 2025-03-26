@@ -1,13 +1,10 @@
-<div align="center">
-    <h1> Treadify <h1>
-    <p>"Technical Colaboration Platform"</p>
-</div>
+![Treadify]("treadify-ascii-art")
 
 # Table of Content
 
- 1.  [Key Features](#key-features)
- 2.  [User Types](#user-types)
- 3.  [User Permissions](#user-permissions)
+ 1. [Key Features](#key-features)
+ 2. [User Types](#user-types)
+ 3. [User Permissions](#user-permissions)
     - [Product Manager](#product-manager)
     - [Technical Lead](#technical-lead)
     - [Developer](#developer)
