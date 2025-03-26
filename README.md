@@ -5,15 +5,15 @@
 
 # Table of Content
 
-1. [Key Features](#key features)
-2. [User Types](#user types)
-3. [User Permissions](#user permissions)
- - [Product Manager](#product manager)
- - [Technical Lead](#technical lead)
- - [Developer](#developer)
-4. [Channels](#channels)
- - [Procduct Channels](#product channels)
- - [Feature Chanels](#feature channels)
+ 1.  [Key Features](#key-features)
+ 2.  [User Types](#user-types)
+ 3.  [User Permissions](#user-permissions)
+    - [Product Manager](#product-manager)
+    - [Technical Lead](#technical-lead)
+    - [Developer](#developer)
+ 4. [Channels](#channels)
+    - [Procduct Channels](#product-channels)
+    - [Feature Chanels](#feature-channels)
 
 # Key Features
  Deadlines:         A product deadlines are set based on the deadline of features
