@@ -1,4 +1,4 @@
-![Treadify]("treadify-ascii-art")
+![Treadify]("treadify-ascii-art.png")
 
 # Table of Content
 
