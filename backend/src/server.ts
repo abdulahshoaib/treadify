@@ -4,7 +4,7 @@ import https from "https"
 import fs from "fs"
 import dotenv from "dotenv"
 
-import { Handlers } from "./handlers/HandlerPackage"
+import Routes from "./routes/routes.ts"
 
 declare module "express-session" {
     interface SessionData {
@@ -49,8 +49,13 @@ app.use(
     })
 )
 
-app.post("/signup", Handlers.signup)
-app.post("/login", Handlers.login)
+app.use("/auth", Routes.authRoutes)
+app.use("/user", Routes.userRoutes)
+app.use("/productchannel", Routes.productRoutes)
+app.use("/featurechannel", Routes.featureRoutes)
+app.use("/progress", Routes.progressRoutes)
+app.use("/messages", Routes.messageRoutes)
+
 
 https.createServer(options, app).listen(port, () => {
     console.log(`[SERVER] server running at ${port}`)
