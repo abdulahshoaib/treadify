@@ -1,7 +1,7 @@
 import type { Request, Response } from "express"
 import bcrypt from "bcrypt"
 
-import { query } from "../database/query.ts"
+import { query } from "../../database/query.ts"
 
 export const signup = async (req: Request, res: Response) => {
     try {

@@ -1,7 +1,7 @@
 import type { Response, Request } from "express"
 import bcrypt from "bcrypt"
 
-import { query } from "../database/query"
+import { query } from "../../database/query.ts"
 
 export const login = async (req: Request, res: Response) => {
     try {
@@ -25,7 +25,7 @@ export const login = async (req: Request, res: Response) => {
 
         // check for session middleware working
         if (!req.session)
-            return res.status(500).json({ error: "Session Error" });
+            res.status(500).json({ error: "Session Error" });
 
         // create a session
         req.session.User = {
