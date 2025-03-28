@@ -13,42 +13,42 @@
 ## Product Management
 
 ### [POST]  /productchannel
-### [POST]  /productchannel/:channelname/invite
-### [POST]  /productchannel/:channelname/features
-### [PATCH] /productchannel/:channelname/depricate
-### [PATCH] /productchannel/:channelname/features/:featurechannel/tl
-### [PATCH] /featurechannel/:channelname/features/:featurechannel/dealine
-### [GET]   /productchannel/:channelname/dealine
-### [GET]   /productchannel/:channelname/members
-### [GET]   /productchannel/:channelname/goals
-### [GET]   /productchannel/:channelname/deadline
-### [GET]   /productchannel/:channelname/report
+### [POST]  /productchannel/:channelID/invite
+### [POST]  /productchannel/:channelID/features
+### [PATCH] /productchannel/:channelID/deprecate
+### [PATCH] /productchannel/:channelID/features/:featurechannel/tl
+### [PATCH] /featurechannel/:channelID/features/:featurechannel/dealine
+### [GET]   /productchannel/:channelID/deadline
+### [GET]   /productchannel/:channelID/members
+### [GET]   /productchannel/:channelID/goals
+### [GET]   /productchannel/:channelID/deadline
+### [GET]   /productchannel/:channelID/report
 
 ## Feature Management
 
-### [POST]  /featurechannel/:channelname/goals
-### [POST]  /featurechannel/:channelname/commit/:goalid
-### [GET]   /featurechannel/:channelname/
-### [GET]   /featurechannel/:channelname/members
-### [GET]   /featurechannel/:channelname/goals
-### [PATCH] /featurechannel/:channelname/commit/:goalid
+### [POST]  /featurechannel/:channelID/goals
+### [POST]  /featurechannel/:channelID/commit/:goalid
+### [GET]   /featurechannel/:channelID/
+### [GET]   /featurechannel/:channelID/members
+### [GET]   /featurechannel/:channelID/goals
+### [PATCH] /featurechannel/:channelID/commit/:goalid
 
 
 ## Progress & Reports
 
-### [GET]   /productchannel/:channelname/progress
-### [GET]   /featurechannel/:channelname/progress
-### [GET]   /featurechannel/:channelname/commit/:goalid/status
-### [PATCH] /featurechannel/:channelname/commit/:goalid/status
+### [GET]   /productchannel/:channelID/progress
+### [GET]   /featurechannel/:channelID/progress
+### [GET]   /featurechannel/:channelID/commit/:goalid/status
+### [PATCH] /featurechannel/:channelID/commit/:goalid/status
 
 ## Messages
 
-### [POST]   /featurechannel/:channelname/messages
-### [POST]   /productchannel/:channelname/messages
-### [GET]    /featurechannel/:channelname/messages
-### [GET]    /productchannel/:channelname/messages
-### [DELETE] /featurechannel/:channelname/messages/:messageid
-### [DELETE] /productchannel/:channelname/messages/:messageid
+### [POST]   /featurechannel/:channelID/messages
+### [POST]   /productchannel/:channelID/messages
+### [GET]    /featurechannel/:channelID/messages
+### [GET]    /productchannel/:channelID/messages
+### [DELETE] /featurechannel/:channelID/messages/:messageid
+### [DELETE] /productchannel/:channelID/messages/:messageid
 
 ## Misc
 
