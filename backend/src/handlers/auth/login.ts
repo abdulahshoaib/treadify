@@ -11,9 +11,11 @@ export const login = async (req: Request, res: Response) => {
             res.status(400).json({ error: "Invalid Input" })
 
         const authLogin = `
-            SELECT u.UserID, u.Username, u.Email, u.Pass, cm.ProductID, cm.FeatureID
+            SELECT u.UserID, u.Username, u.Email, u.Pass, cm.ProductID, cm.FeatureID, r.Name
             FROM Users u
             LEFT JOIN ChannelMembers cm ON u.UserID = cm.UserID
+            LEFT JOIN UserRoles ur ON u.UserID = ur.UserID
+            LEFT JOIN Roles r ON ur.RoleID = r.RoleID
             WHERE u.Username = @username
         `
 
@@ -37,7 +39,8 @@ export const login = async (req: Request, res: Response) => {
             username: user[0].Username,
             email: user[0].Email,
             product: user[0].ProductID,
-            feature: user[0].FeatureID
+            feature: user[0].FeatureID,
+            role: user[0].Name
         }
 
         res.status(200).json({ message: "Login Successful" })
