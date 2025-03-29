@@ -1,4 +1,7 @@
 import sql from 'mssql'
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 const config: sql.config = {
     user: process.env.DB_USER,
@@ -11,10 +14,9 @@ const config: sql.config = {
         idleTimeoutMillis: 30000
     },
     options: {
-        trustedConnection: true,
         encrypt: true,
         trustServerCertificate: true
-    }
+    },
 }
 
 // lazy connection

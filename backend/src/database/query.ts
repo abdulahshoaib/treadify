@@ -12,7 +12,7 @@ export const query = async (dbQuery: string, params: any = {}) => {
         const res = await request.query(dbQuery)
         return res.recordset
     } catch (err: any) {
-        console.error("[Query] ", err.message)
+        console.error("[Query] ", err)
         throw err
     }
 };
