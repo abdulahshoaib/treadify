@@ -1,5 +1,163 @@
-CREATE DATABASE treadify;
+CREATE DATABASE threadify;
 
-CREATE TABLE tableName (
+USE threadify;
 
-);
+CREATE TABLE Users(
+    UserID INT PRIMARY KEY IDENTITY(1,1),
+    Username VARCHAR(30) UNIQUE NOT NULL,
+    Email VARCHAR(50) UNIQUE NOT NULL,
+    Pass  VARCHAR(255) NOT NULL,
+    FirstName  VARCHAR(25) DEFAULT NULL,
+    LastName VARCHAR(25) DEFAULT NULL,
+    ProfileImgPath VARCHAR(255) DEFAULT NULL,
+)
+
+CREATE TABLE Roles (
+    RoleID INT PRIMARY KEY IDENTITY(1,1),
+    Name VARCHAR(50) UNIQUE NOT NULL,
+    Description VARCHAR(255) DEFAULT NULL,
+)
+
+CREATE TABLE UserRoles (
+    UserID INT NOT NULL,
+    RoleID INT NOT NULL,
+    PRIMARY KEY (UserID, RoleID),
+    FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE CASCADE,
+    FOREIGN KEY (RoleID) REFERENCES Roles(RoleID) ON DELETE CASCADE
+)
+
+CREATE TABLE Permissions (
+    PermissionID INT PRIMARY KEY IDENTITY(1,1),
+    Name VARCHAR(100) UNIQUE NOT NULL,
+    Description VARCHAR(255) DEFAULT NULL,
+)
+
+CREATE TABLE RolePermissions (
+    RoleID INT NOT NULL,
+    PermissionID INT NOT NULL,
+    PRIMARY KEY (RoleID, PermissionID),
+    FOREIGN KEY (RoleID) REFERENCES Roles(RoleID) ON DELETE CASCADE,
+    FOREIGN KEY (PermissionID) REFERENCES Permissions(PermissionID) ON DELETE CASCADE
+)
+
+CREATE TABLE Products (
+    ProductID INT PRIMARY KEY IDENTITY(1,1),
+    Name VARCHAR(255) UNIQUE NOT NULL,
+    Description TEXT DEFAULT NULL,
+    Deadline DATETIME NOT NULL,
+    PMID INT UNIQUE NOT NULL,
+
+    FOREIGN KEY (PMID) REFERENCES Users(UserID) ON DELETE CASCADE
+)
+
+CREATE TABLE Features (
+    FeatureID INT PRIMARY KEY IDENTITY(1,1),
+    ProductID INT NOT NULL,
+    Name VARCHAR(255) NOT NULL,
+    Description TEXT DEFAULT NULL,
+    Deadline DATETIME NOT NULL,
+    Status VARCHAR(10) CHECK (Status IN ('active', 'completed')) DEFAULT 'active',
+    TLID INT UNIQUE NOT NULL,
+
+    FOREIGN KEY (ProductID) REFERENCES Products(ProductID) ON DELETE CASCADE,
+    FOREIGN KEY (TLID) REFERENCES Users(UserID)
+)
+
+CREATE TABLE Goals (
+    GoalID INT PRIMARY KEY IDENTITY(1,1),
+    FeatureID INT NOT NULL,
+    Name VARCHAR(255) NOT NULL,
+    Description TEXT DEFAULT NULL,
+    CreatedByID INT NOT NULL,
+    Deadline DATETIME DEFAULT NULL,
+    CompletedAt DATETIME DEFAULT NULL,
+    Status VARCHAR(10) CHECK (Status IN ('open', 'completed')) DEFAULT 'open',
+
+    FOREIGN KEY (FeatureID) REFERENCES Features(FeatureID) ON DELETE CASCADE,
+    FOREIGN KEY (CreatedByID) REFERENCES Users(UserID)
+)
+
+CREATE TABLE Commits (
+    CommitID INT PRIMARY KEY IDENTITY(1,1),
+    GoalID INT NOT NULL,
+    DevID INT NOT NULL,
+    GitHubCommitSHA VARCHAR(40) NOT NULL,
+    GitHubMessage TEXT NOT NULL,
+    CommitURL VARCHAR(255) DEFAULT NULL,
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    ReviewedAt DATETIME DEFAULT NULL,
+    ReviewedByID INT DEFAULT NULL,
+    Status VARCHAR(10) CHECK (Status IN ('pending', 'accepted', 'rejected')) DEFAULT 'pending',
+    Comments TEXT DEFAULT NULL,
+
+    UNIQUE (GitHubCommitSHA),
+    FOREIGN KEY (GoalID) REFERENCES Goals(GoalID) ON DELETE CASCADE,
+    FOREIGN KEY (DevID) REFERENCES Users(UserID),
+    FOREIGN KEY (ReviewedByID) REFERENCES Users(UserID)
+)
+
+CREATE TABLE Channels (
+    ChannelID INT PRIMARY KEY IDENTITY(1,1),
+    ProductID INT NOT NULL,
+    FeatureID INT DEFAULT NULL,
+    Type VARCHAR(10) CHECK (Type IN ('product', 'feature')) NOT NULL,
+
+    FOREIGN KEY (ProductID) REFERENCES Products(ProductID),
+    FOREIGN KEY (FeatureID) REFERENCES Features(FeatureID),
+    CHECK
+    ((Type = 'product' AND FeatureID IS NULL) OR
+    (Type = 'feature' AND FeatureID IS NOT NULL))
+)
+
+CREATE TABLE Messages (
+    MessageID INT PRIMARY KEY IDENTITY(1,1),
+    ChannelID INT NOT NULL,
+    SenderID INT NOT NULL,
+    Content TEXT NOT NULL,
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    EditedAt DATETIME DEFAULT NULL,
+    IsDeleted BIT DEFAULT 0,
+    ReplyToID INT DEFAULT NULL,
+
+    FOREIGN KEY (ChannelID) REFERENCES Channels(ChannelID) ON DELETE CASCADE,
+    FOREIGN KEY (SenderID) REFERENCES Users(UserID),
+    FOREIGN KEY (ReplyToID) REFERENCES Messages(MessageID)
+)
+
+CREATE TABLE ChannelMembers (
+    MembershipID INT PRIMARY KEY IDENTITY(1,1),
+    UserID INT NOT NULL,
+    ProductID INT NOT NULL,
+    FeatureID INT DEFAULT NULL,
+    Role VARCHAR(20) CHECK (Role IN ('PM', 'TL', 'Dev')) NOT NULL,
+    JoinedAt DATETIME DEFAULT GETDATE(),
+    IsActive BIT DEFAULT 1,
+
+    UNIQUE (UserID, ProductID, FeatureID),
+    FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE CASCADE,
+    FOREIGN KEY (ProductID) REFERENCES Products(ProductID),
+    FOREIGN KEY (FeatureID) REFERENCES Features(FeatureID)
+)
+
+CREATE TABLE UserGitHubIntegration (
+    UserID INT PRIMARY KEY,
+    GitHubUsername VARCHAR(100) NOT NULL,
+    AccessToken VARCHAR(255) NOT NULL,
+    RefreshToken VARCHAR(255) DEFAULT NULL,
+    TokenExpiry DATETIME DEFAULT NULL,
+    ConnectedAt DATETIME DEFAULT GETDATE(),
+    LastSyncAt DATETIME DEFAULT NULL,
+
+    FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE CASCADE
+)
+
+CREATE TABLE GitHubRepositories (
+    RepoID INT PRIMARY KEY IDENTITY(1,1),
+    ProductID INT UNIQUE NOT NULL,
+    RepoOwner VARCHAR(100) NOT NULL,
+    RepoName VARCHAR(100) NOT NULL,
+    RepoURL VARCHAR(255) NOT NULL,
+    DefaultBranch VARCHAR(100) DEFAULT 'main',
+
+    FOREIGN KEY (ProductID) REFERENCES Products(ProductID) ON DELETE CASCADE,
+)
