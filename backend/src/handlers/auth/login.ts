@@ -11,10 +11,14 @@ export const login = async (req: Request, res: Response) => {
             res.status(400).json({ error: "Invalid Input" })
 
         const authLogin = `
-            SELECT Pass FROM Users
-            WHERE Username = @username
+            SELECT u.UserID, u.Username, u.Email, u.Pass, cm.ProductID, cm.FeatureID
+            FROM Users u
+            LEFT JOIN ChannelMembers cm ON u.UserID = cm.UserID
+            WHERE u.Username = @username
         `
+
         const user = await query(authLogin, { username })
+        console.log(user)
 
         if (user.length == 0)
             res.status(401).json({ error: "No User Found" })
@@ -29,10 +33,13 @@ export const login = async (req: Request, res: Response) => {
 
         // create a session
         req.session.User = {
-            id: user[0].id,
+            id: user[0].UserID,
             username: user[0].Username,
             email: user[0].Email,
+            product: user[0].ProductID,
+            feature: user[0].FeatureID
         }
+
         res.status(200).json({ message: "Login Successful" })
 
     } catch (err: any) {
