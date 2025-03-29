@@ -26,12 +26,23 @@
 
 ## Feature Management
 
-### [POST]  /featurechannel/:channelID/goals
-### [POST]  /featurechannel/:channelID/commit/:goalid
-### [GET]   /featurechannel/:channelID/
-### [GET]   /featurechannel/:channelID/members
-### [GET]   /featurechannel/:channelID/goals
-### [PATCH] /featurechannel/:channelID/commit/:goalid
+- Feature Channel ID is present in the session cookie. User saves the featurechannelID it is in on signup
+- User role is present in the session cookie. User saves the role it has on signup
+
+### [POST]  /featurechannel/goal
+*Create a new goal in the featurechannel*
+### [POST]  /featurechannel/commit/:goalid
+*Create a new commit against a goal in the featurechannel*
+### [GET]   /featurechannel/
+*Get all the information of the feature channel*
+### [GET]   /featurechannel/members
+*Get all the memebers of the feature channel*
+### [GET]   /featurechannel/goals
+*Get all the goals of the feature channel*
+### [PATCH] /featurechannel/commit/:goalid
+*Update the commit against some goal*
+### [PATCH] /featurechannel/goal/:goalid
+*Update the goal details*
 
 
 ## Progress & Reports
