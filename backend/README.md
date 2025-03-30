@@ -135,7 +135,7 @@ Callback endpoint for GitHub OAuth process.
 
 ## Feature Management
 
-> **Note:**  
+> **Note:**
 > - Feature Channel ID is present in the session cookie (saved on login)
 > - User role is present in the session cookie (saved on login)
 
@@ -657,3 +657,5 @@ Get admin statistics (admin-only).
 
 ## TODO
 - Implement RBAC system for routes
+- Add progress route
+- Add Handlers for user profile
