@@ -5,8 +5,10 @@
 - [User Management](#user-management)
 - [Product Management](#product-management)
 - [Feature Management](#feature-management)
-- [GitHub Integration](#github-integration)
 - [Messages](#messages)
+- [Progress Tracking](#progress-tracking)
+- [User Profile](#user-profile)
+- [GitHub Integration](#github-integration)
 - [Miscellaneous](#miscellaneous)
 
 ## Authentication
@@ -736,6 +738,78 @@ Get commit status for a specific goal.
 - Used to check review status of GitHub commits linked to goals
 
 ---
+Here's the **User Profile** section for your documentation:
+
+---
+
+## User Profile
+
+### `GET` /user/profile
+Get the authenticated user's profile information.
+
+**Authentication Required:** Yes
+**Session Requirements:**
+- `User.id` must be present in session
+
+**Response (200):**
+```json
+{
+  "message": "User profile for {UserID}",
+  "data": {
+    "UserID": "number",
+    "Username": "string",
+    "Email": "string",
+    "ProfileImgPath": "string | null",
+    "GitHubUsername": "string | null",
+    "Role": "string",
+    "CreatedAt": "ISO datetime string"
+  }
+}
+```
+
+**Error Responses:**
+- `400` - Missing user ID in session
+- `404` - User not found
+- `500` - Database error
+
+---
+
+### `PATCH` /user/profile
+Update the authenticated user's profile information.
+
+**Authentication Required:** Yes
+**Session Requirements:**
+- `User.id` must be present in session
+
+**Request Body:**
+```json
+{
+  "Email": "string",
+  "ProfileImgPath": "string"
+}
+```
+
+**Response (200):**
+```json
+{
+  "message": "User profile updated for {UserID}",
+  "data": {
+    "affectedRows": 1
+  }
+}
+```
+
+**Error Responses:**
+- `400` - Missing required fields
+- `401` - Unauthorized
+- `500` - Database error
+
+**Notes:**
+1. Only email and profile image path can be updated
+2. Profile images should be uploaded separately (via different endpoint)
+3. Returns the raw database update result
+
+---
 
 ## Miscellaneous
 
@@ -777,4 +851,3 @@ Get admin statistics (admin-only).
 
 ## TODO
 - Implement RBAC system for routes
-- Add Handlers for user profile
