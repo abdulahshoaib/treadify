@@ -3,10 +3,9 @@ import Progress from "../handlers/progress/progress.ts";
 
 const router = Router();
 
-router.get("/productchannel/:channelID/progress", Progress.getProductProgress);
-router.get("/featurechannel/:channelID/progress", Progress.getFeatureProgress);
-router.get("/featurechannel/:channelID/commit/:goalid/status", Progress.getCommitStatus);
-router.patch("/featurechannel/:channelID/commit/:goalid/status", Progress.updateCommitStatus);
+router.get("/productchannel/progress", Progress.getProductProgress);
+router.get("/featurechannel/progress", Progress.getFeatureProgress);
+router.get("/featurechannel/commit/:goalid/status", Progress.getCommitStatus);
 
 export default router;
 
