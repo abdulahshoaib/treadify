@@ -1,22 +1,22 @@
 import type { Request, Response } from "express"
 import { query } from "../../database/query.ts"
 
-// Get user profile by username
 const getUserProfile = async (req: Request, res: Response) => {
     try {
-        const { username } = req.params
+        const UserID = req.session.User?.id
 
-        if (!username) {
+        if (!UserID)
             return res.status(400).json({ error: "Username is required" })
-        }
 
-        const result = await query("SELECT * FROM users WHERE username = ?", [username])
+        const result = await query(
+            `SELECT * FROM users WHERE UserID = @UserID`,
+            { UserID }
+        )
 
-        if (!result.length) {
+        if (!result.length)
             return res.status(404).json({ error: "User not found" })
-        }
 
-        res.json({ message: `User profile for ${username}`, data: result[0] })
+        res.json({ message: `User profile for ${UserID}`, data: result[0] })
     } catch (err: any) {
         console.error(err.message)
         res.status(500).json({ error: err.message })
@@ -26,19 +26,19 @@ const getUserProfile = async (req: Request, res: Response) => {
 // Update user profile
 const updateUserProfile = async (req: Request, res: Response) => {
     try {
-        const { username } = req.params
-        const { email, bio, profilePicture } = req.body
+        const UserID = req.session.User?.id
+        const { Email, ProfileImgPath } = req.body
 
-        if (!username || !email) {
+        if (!UserID || !Email) {
             return res.status(400).json({ error: "Username and email are required" })
         }
 
         const result = await query(
-            "UPDATE users SET email = ?, bio = ?, profile_picture = ? WHERE username = ?",
-            [email, bio || null, profilePicture || null, username]
+            `UPDATE Users SET Email = @Email, ProfileImgPath = @ProfileImgPath WHERE UserID = @UserID `,
+            { Email, ProfileImgPath }
         )
 
-        res.json({ message: `User profile updated for ${username}`, data: result })
+        res.json({ message: `User profile updated for ${UserID}`, data: result })
     } catch (err: any) {
         console.error(err.message)
         res.status(500).json({ error: err.message })
