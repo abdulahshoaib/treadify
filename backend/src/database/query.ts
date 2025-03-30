@@ -1,4 +1,4 @@
-import { poolPromise } from "./connection.ts";
+import { poolPromise } from "./connection.ts"
 
 export const query = async (dbQuery: string, params: any = {}) => {
     try {
@@ -15,5 +15,5 @@ export const query = async (dbQuery: string, params: any = {}) => {
         console.error("[Query] ", err)
         throw err
     }
-};
+}
 
