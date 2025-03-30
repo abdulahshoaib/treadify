@@ -9,7 +9,12 @@ const getUserProfile = async (req: Request, res: Response) => {
             return res.status(400).json({ error: "Username is required" })
 
         const result = await query(
-            `SELECT * FROM users WHERE UserID = @UserID`,
+            `SELECT
+                u.*
+                ug.GitHubUsername
+            FROM Users u
+            JOIN UserGitHubIntegration ug ON u.UserID = ug.UserID
+            WHERE UserID = @UserID`,
             { UserID }
         )
 
@@ -23,7 +28,6 @@ const getUserProfile = async (req: Request, res: Response) => {
     }
 }
 
-// Update user profile
 const updateUserProfile = async (req: Request, res: Response) => {
     try {
         const UserID = req.session.User?.id
