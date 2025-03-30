@@ -851,3 +851,4 @@ Get admin statistics (admin-only).
 
 ## TODO
 - Implement RBAC system for routes
+- Add Handlers for user profile
