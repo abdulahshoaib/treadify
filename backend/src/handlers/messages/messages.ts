@@ -1,107 +1,184 @@
 import type { Request, Response } from "express"
 import { query } from "../../database/query.ts"
 
-// Send a message in a feature channel
 const sendFeatureMessage = async (req: Request, res: Response) => {
-    try {
-        const { featureID, userID, message } = req.body
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
 
-        if (!featureID || !userID || !message) {
-            return res.status(400).json({ error: "Feature ID, User ID, and Message are required" })
+    try {
+        const ProductID = req.session.User?.product
+        const FeatureID = req.session.User?.feature
+        const UserID = req.session.User?.id
+        const { message } = req.body
+
+        if (!FeatureID || !UserID || !message) {
+            res.status(400).json({ error: "Feature ID, User ID, and Message are required" })
         }
 
+        const channelResult = await query("SELECT ChannelID FROM Channels WHERE ProductID = @ProductID AND FeatureID = @FeatureID",
+            { ProductID, FeatureID })
+
+        if (!channelResult.length)
+            res.status(404).json({ error: "Channel not found" })
+
+        const ChannelID = channelResult[0].ChannelID
+
         const result = await query(
-            "INSERT INTO feature_messages (feature_id, user_id, message) VALUES (?, ?, ?)",
-            [featureID, userID, message]
+            "INSERT INTO Messages (ChannelID, SenderID, Content) VALUES (@ChannelID, @UserID, @message)",
+            { ChannelID, UserID, message }
         )
 
         res.status(201).json({ message: "Message sent in feature channel", data: result })
-    } catch (error: any) {
-        console.error(error.message)
-        res.status(500).json({ error: error.message })
+    } catch (err: any) {
+        console.error(err.message)
+        res.status(500).json({ error: err.message })
     }
 }
 
-// Send a message in a product channel
 const sendProductMessage = async (req: Request, res: Response) => {
-    try {
-        const { channelID, userID, message } = req.body
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
 
-        if (!channelID || !userID || !message) {
-            return res.status(400).json({ error: "Channel ID, User ID, and Message are required" })
+    try {
+        const ProductID = req.session.User?.product
+        const UserID = req.session.User?.id
+        const { message } = req.body
+
+        if (!ProductID || !UserID || !message) {
+            res.status(400).json({ error: "Feature ID, User ID, and Message are required" })
         }
 
+        const channelResult = await query("SELECT ChannelID FROM Channels WHERE ProductID = @ProductID AND FeatureID IS NULL",
+            { ProductID })
+
+        if (!channelResult.length)
+            res.status(404).json({ error: "Channel not found" })
+
+        const ChannelID = channelResult[0].ChannelID
+
         const result = await query(
-            "INSERT INTO product_messages (channel_id, user_id, message) VALUES (?, ?, ?)",
-            [channelID, userID, message]
+            "INSERT INTO Messages (ChannelID, SenderID, Content) VALUES (@ChannelID, @UserID, @message)",
+            { ChannelID, UserID, message }
         )
 
-        res.status(201).json({ message: "Message sent in product channel", data: result })
-    } catch (error: any) {
-        console.error(error.message)
-        res.status(500).json({ error: error.message })
+        res.status(201).json({ message: "Message sent in Product channel", data: result })
+    } catch (err: any) {
+        console.error(err.message)
+        res.status(500).json({ error: err.message })
     }
 }
 
-// Get all messages from a feature channel
 const getFeatureMessages = async (req: Request, res: Response) => {
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
+
     try {
-        const { featureID } = req.params
+        const FeatureID = req.session.User?.feature
+        const ProductID = req.session.User?.product
+
+        const channelResult = await query("SELECT ChannelID FROM Channels WHERE ProductID = @ProductID AND FeatureID = @FeatureID",
+            { ProductID, FeatureID })
+
+        if (!channelResult.length)
+            res.status(404).json({ error: "Channel not found" })
+
+        const ChannelID = channelResult[0].ChannelID
 
         const result = await query(
-            "SELECT * FROM feature_messages WHERE feature_id = ? ORDER BY created_at DESC",
-            [featureID]
+            "SELECT * FROM Messages WHERE ChannelID = @ChannelID ORDER BY CreatedAt DESC",
+            { ChannelID }
         )
 
-        res.json({ message: `Messages for feature ${featureID}`, data: result })
-    } catch (error: any) {
-        console.error(error.message)
-        res.status(500).json({ error: error.message })
+        res.json({ message: `Messages for feature ${FeatureID}`, data: result })
+    } catch (err: any) {
+        console.error(err.message)
+        res.status(500).json({ error: err.message })
     }
 }
 
 // Get all messages from a product channel
 const getProductMessages = async (req: Request, res: Response) => {
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
     try {
-        const { channelID } = req.params
+        const ProductID = req.session.User?.product
 
-        const result = await query(
-            "SELECT * FROM product_messages WHERE channel_id = ? ORDER BY created_at DESC",
-            [channelID]
+        const channelResult = await query(
+            "SELECT ChannelID FROM Channels WHERE ProductID = @ProductID AND FeatureID IS NULL",
+            { ProductID }
         )
 
-        res.json({ message: `Messages for product channel ${channelID}`, data: result })
-    } catch (error: any) {
-        console.error(error.message)
-        res.status(500).json({ error: error.message })
+        if (!channelResult.length)
+            res.status(404).json({ error: "Channel not found" })
+
+        const ChannelID = channelResult[0].ChannelID
+
+        const result = await query(
+            "SELECT * FROM Messages WHERE ChannelID = @ChannelID ORDER BY CreatedAt DESC",
+            { ChannelID }
+        )
+
+        res.json({ message: `Messages for product channel ${ChannelID}`, data: result })
+    } catch (err: any) {
+        console.error(err.message)
+        res.status(500).json({ error: err.message })
     }
 }
 
-// Delete a specific message from a feature channel
 const deleteFeatureMessage = async (req: Request, res: Response) => {
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
     try {
-        const { messageID } = req.params
+        const ProductID = req.session.User?.product
+        const FeatureID = req.session.User?.feature
+        const UserID = req.session.User?.id
+        const { MessageID } = req.body
 
-        const result = await query("DELETE FROM feature_messages WHERE id = ?", [messageID])
+        const channelResult = await query(
+            "SELECT ChannelID FROM Channels WHERE ProductID = @ProductID AND FeatureID = @FeatureID",
+            { ProductID, FeatureID }
+        )
 
-        res.json({ message: `Deleted feature message ${messageID}`, data: result })
-    } catch (error: any) {
-        console.error(error.message)
-        res.status(500).json({ error: error.message })
+        if (!channelResult.length)
+            res.status(404).json({ error: "Channel not found" })
+
+        const ChannelID = channelResult[0].ChannelID
+
+        const result = await query("DELETE FROM Message WHERE MessageID = @MessageID AND SenderID = @UserID AND ChannelID = @ChannelID",
+            { MessageID, UserID, ChannelID })
+
+        res.json({ message: `Deleted feature message ${MessageID}`, data: result })
+    } catch (err: any) {
+        console.error(err.message)
+        res.status(500).json({ error: err.message })
     }
 }
 
-// Delete a specific message from a product channel
 const deleteProductMessage = async (req: Request, res: Response) => {
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
     try {
-        const { messageID } = req.params
+        const ProductID = req.session.User?.product
+        const UserID = req.session.User?.id
+        const { MessageID } = req.body
 
-        const result = await query("DELETE FROM product_messages WHERE id = ?", [messageID])
+        const channelResult = await query(
+            "SELECT ChannelID FROM Channels WHERE ProductID = @ProductID AND FeatureID IS NULL",
+            { ProductID }
+        )
 
-        res.json({ message: `Deleted product message ${messageID}`, data: result })
-    } catch (error: any) {
-        console.error(error.message)
-        res.status(500).json({ error: error.message })
+        if (!channelResult.length)
+            res.status(404).json({ error: "Channel not found" })
+
+        const ChannelID = channelResult[0].ChannelID
+
+        const result = await query("DELETE FROM Message WHERE MessageID = @MessageID AND SenderID = @UserID AND ChannelID = @ChannelID",
+            { MessageID, UserID, ChannelID })
+
+        res.json({ message: `Deleted product message ${MessageID}`, data: result })
+    } catch (err: any) {
+        console.error(err.message)
+        res.status(500).json({ error: err.message })
     }
 }
 
@@ -113,4 +190,3 @@ export default {
     deleteFeatureMessage,
     deleteProductMessage,
 }
-
