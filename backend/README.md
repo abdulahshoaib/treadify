@@ -496,17 +496,29 @@ Get product channel report with statistics.
 - `404` - Channel not found
 - `500` - Database error
 
+Here's the updated **Messages** section of your documentation, refined based on the actual implementation:
+
+---
+
 ## Messages
+
+### Channel Structure
+- Product channels: `ProductID` only (FeatureID = NULL)
+- Feature channels: Both `ProductID` and `FeatureID`
 
 ### `POST` /messages/featurechannel
 Send message to feature channel.
 
 **Authentication Required:** Yes
+**Session Requirements:**
+- `User.id`
+- `User.product`
+- `User.feature`
 
 **Request Body:**
 ```json
 {
-  "message": "string (required)"
+  "message": "string (required, max 2000 chars)"
 }
 ```
 
@@ -514,44 +526,50 @@ Send message to feature channel.
 ```json
 {
   "message": "Message sent in feature channel",
-  "data": "object (database result)"
+  "data": {
+    "insertId": "number",
+    "affectedRows": 1
+  }
 }
 ```
 
 **Error Responses:**
-- `400` - Missing message content
-- `401` - Unauthorized Access
-- `404` - Channel not found
+- `400` - Missing FeatureID, UserID, or message content
+- `401` - Unauthorized (no active session)
+- `404` - Feature channel not found
 - `500` - Database error
 
 ---
+
 ### `POST` /messages/productchannel
 Send message to product channel.
 
 **Authentication Required:** Yes
+**Session Requirements:**
+- `User.id`
+- `User.product`
 
-**Request Body:**
-```json
-{
-  "message": "string (required)"
-}
-```
+**Request Body:** Same as feature channel
 
 **Response (201):**
 ```json
 {
   "message": "Message sent in Product channel",
-  "data": "object (database result)"
+  "data": { /* same structure as feature channel */ }
 }
 ```
 
-**Error Responses:** Same as feature channel messages
+**Error Responses:** Same as feature channel
 
 ---
+
 ### `GET` /messages/featurechannel
-Get all messages from feature channel.
+Get all messages from feature channel (newest first).
 
 **Authentication Required:** Yes
+**Session Requirements:**
+- `User.product`
+- `User.feature`
 
 **Response (200):**
 ```json
@@ -560,6 +578,7 @@ Get all messages from feature channel.
   "data": [
     {
       "MessageID": "number",
+      "ChannelID": "number",
       "SenderID": "number",
       "Content": "string",
       "CreatedAt": "ISO datetime string"
@@ -569,23 +588,31 @@ Get all messages from feature channel.
 ```
 
 **Error Responses:**
-- `401` - Unauthorized Access
+- `401` - Unauthorized
 - `404` - Channel not found
 - `500` - Database error
 
 ---
+
 ### `GET` /messages/productchannel
-Get all messages from product channel.
+Get all product channel messages.
 
 **Authentication Required:** Yes
+**Session Requirements:**
+- `User.product`
 
-**Response (200):** Similar to feature channel messages
+**Response:** Same structure as feature channel messages
 
 ---
-### `DELETE` /messages/featurechannel
-Delete a message from feature channel.
 
-**Authentication Required:** Yes (must be message sender)
+### `DELETE` /messages/featurechannel
+Delete user's own message from feature channel.
+
+**Authentication Required:** Yes
+**Session Requirements:**
+- `User.id`
+- `User.product`
+- `User.feature`
 
 **Request Body:**
 ```json
@@ -598,24 +625,115 @@ Delete a message from feature channel.
 ```json
 {
   "message": "Deleted feature message {MessageID}",
-  "data": "object (database result)"
+  "data": {
+    "affectedRows": 1
+  }
 }
 ```
 
 **Error Responses:**
 - `400` - Missing MessageID
-- `401` - Unauthorized Access
-- `404` - Channel or message not found
+- `401` - Unauthorized
+- `404` - Message not found or not owned by user
+- `500` - Database error
+
+**Note:** Only the original sender can delete messages
+
+---
+
+### `DELETE` /messages/productchannel
+Delete product channel message.
+
+**Authentication Required:** Yes
+**Request/Response:** Same as feature channel deletion
+
+---
+
+## Progress Tracking
+
+### `GET` /progress/product
+Get progress metrics for the current user's product.
+
+**Authentication Required:** Yes
+**Session Requirements:**
+- `ProductID` must be present in user session
+
+**Response (200):**
+```json
+{
+  "message": "Progress for product {ProductID}",
+  "data": {
+    "ProductID": "number",
+    "ProductName": "string",
+    "TotalFeatures": "number",
+    "CompletedFeatures": "number",
+    "ProgressPercentage": "number"
+  }
+}
+```
+
+**Error Responses:**
+- `400` - Product ID missing in session
+- `404` - No progress data found
 - `500` - Database error
 
 ---
-### `DELETE` /messages/productchannel
-Delete a message from product channel.
 
-**Authentication Required:** Yes (must be message sender)
+### `GET` /progress/feature
+Get progress metrics for the current user's feature.
 
-**Request Body and Response:** Similar to feature channel message deletion
+**Authentication Required:** Yes
+**Session Requirements:**
+- `FeatureID` must be present in user session
 
+**Response (200):**
+```json
+{
+  "message": "Progress for feature {FeatureID}",
+  "data": {
+    "FeatureID": "number",
+    "FeatureName": "string",
+    "TotalGoals": "number",
+    "CompletedGoals": "number",
+    "ProgressPercentage": "number"
+  }
+}
+```
+
+**Error Responses:**
+- `400` - Feature ID missing in session
+- `404` - No progress data found
+- `500` - Database error
+
+---
+
+### `GET` /progress/commit/:goalID
+Get commit status for a specific goal.
+
+**Authentication Required:** Yes
+
+**URL Parameters:**
+- `goalID` (required) - Target goal ID
+
+**Response (200):**
+```json
+{
+  "message": "Commit status for goal {goalID}",
+  "data": {
+    "Status": "string (pending/approved/rejected)"
+  }
+}
+```
+
+**Error Responses:**
+- `400` - Missing goal ID
+- `404` - No commit found
+- `500` - Database error
+
+**Notes:**
+- Used to check review status of GitHub commits linked to goals
+
+---
 
 ## Miscellaneous
 
@@ -657,5 +775,4 @@ Get admin statistics (admin-only).
 
 ## TODO
 - Implement RBAC system for routes
-- Add progress route
 - Add Handlers for user profile
