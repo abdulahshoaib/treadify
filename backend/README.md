@@ -19,15 +19,14 @@ Implement the RBAC system to routes
 
 ### [POST]  /productchannel
 *Create a new product channel*
+    body: ProductName, ProductDisc, RepoURL
 ### [POST]  /productchannel/invite
-*Create a new channel invite to add members*
+*Create a new channel to add members*
 ### [POST]  /productchannel/features
 *Create a new feature channel for the product channel*
     body: featureName, discription, technicalLeadID
 ### [PATCH] /productchannel/deprecate
 *deprecate the channel*
-### [PATCH] /productchannel/features/tl
-*Assign TL to a channel*
 ### [PATCH] /productchannel/features/dealine
 *Assign new deadline to feature*
     body: featureID and deadline
