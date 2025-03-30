@@ -5,7 +5,7 @@ import { query } from "../../database/query.ts"
 
 export const signup = async (req: Request, res: Response) => {
     try {
-        const { username, email, pass } = req.body
+        const { FirstName, LastName, username, email, pass } = req.body
 
         if (!username || !email || !pass)
             res.status(400).json({ error: "Invalid Input" })
@@ -13,11 +13,11 @@ export const signup = async (req: Request, res: Response) => {
         // hash the password
         const hash = await bcrypt.hash(pass, 10)
 
-        const insertUser = `
-            INSERT INTO Users (Username, Email, Pass)
-            VALUES (@username, @email, @hash)
-        `
-        await query(insertUser, { username, email, hash })
+        await query(
+            `INSERT INTO Users (FirstName, LastName, Username, Email, Pass)
+             VALUES (@FirstName, @LastName, @username, @email, @hash)`,
+            { FirstName, LastName, username, email, hash }
+        )
         res.status(201).json({ message: "User Created" })
 
     } catch (err: any) {
