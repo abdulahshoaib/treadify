@@ -3,46 +3,63 @@ import { query } from "../../database/query.ts"
 
 const getProductProgress = async (req: Request, res: Response) => {
     try {
-        const { productID } = req.params
+        const ProductID = req.session.User?.product
 
-        if (!productID) {
-            return res.status(400).json({ error: "Product ID is required" })
-        }
+        if (!ProductID)
+            res.status(400).json({ error: "Product ID is required" })
+
 
         const result = await query(
-            "SELECT progress FROM product_progress WHERE product_id = ?",
-            [productID]
+            `SELECT
+                p.ProductID,
+                p.Name AS ProductName,
+                COUNT(f.FeatureID) AS TotalFeatures,
+                SUM(CASE WHEN f.Status = 'completed' THEN 1 ELSE 0 END) AS CompletedFeatures,
+                (SUM(CASE WHEN f.Status = 'completed' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(f.FeatureID), 0) AS ProgressPercentage
+            FROM Products p
+            LEFT JOIN Features f ON p.ProductID = f.ProductID
+            WHERE p.ProductID = @ProductID
+            GROUP BY p.ProductID, p.Name`,
+            { ProductID }
         )
 
-        if (!result.length) {
-            return res.status(404).json({ error: "No progress found for this product" })
-        }
+        if (!result.length)
+            res.status(404).json({ error: "No progress found for this product" })
 
-        res.json({ message: `Progress for product ${productID}`, data: result[0] })
-    } catch (error: any) {
-        console.error(error.message)
-        res.status(500).json({ error: error.message })
+        res.json({ message: `Progress for product ${ProductID}`, data: result[0] })
+    } catch (err: any) {
+        console.error(err.message)
+        res.status(500).json({ error: err.message })
     }
 }
 
 const getFeatureProgress = async (req: Request, res: Response) => {
     try {
-        const { featureID } = req.params
+        const FeatureID = req.session.User?.feature
 
-        if (!featureID) {
-            return res.status(400).json({ error: "Feature ID is required" })
-        }
+        if (!FeatureID)
+            res.status(400).json({ error: "Feature ID is required" })
+
 
         const result = await query(
-            "SELECT progress FROM feature_progress WHERE feature_id = ?",
-            [featureID]
+            `SELECT
+                f.FeatureID,
+                f.Name AS FeatureName,
+                COUNT(g.GoalID) AS TotalGoals,
+                SUM(CASE WHEN g.Status = 'completed' THEN 1 ELSE 0 END) AS CompletedGoals,
+                (SUM(CASE WHEN g.Status = 'completed' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(g.GoalID), 0)) AS ProgressPercentage
+            FROM Features f
+            LEFT JOIN Goals g ON f.FeatureID = g.FeatureID
+            WHERE f.FeatureID = @FeatureID
+            GROUP BY f.FeatureID, f.Name`,
+            { FeatureID }
         )
 
-        if (!result.length) {
-            return res.status(404).json({ error: "No progress found for this feature" })
-        }
+        if (!result.length)
+            res.status(404).json({ error: "No progress found for this feature" })
 
-        res.json({ message: `Progress for feature ${featureID}`, data: result[0] })
+
+        res.json({ message: `Progress for feature ${FeatureID}`, data: result[0] })
     } catch (error: any) {
         console.error(error.message)
         res.status(500).json({ error: error.message })
@@ -53,41 +70,19 @@ const getCommitStatus = async (req: Request, res: Response) => {
     try {
         const { goalID } = req.params
 
-        if (!goalID) {
-            return res.status(400).json({ error: "Goal ID is required" })
-        }
+        if (!goalID)
+            res.status(400).json({ error: "Goal ID is required" })
+
 
         const result = await query(
-            "SELECT status FROM goal_commits WHERE goal_id = ?",
-            [goalID]
+            "SELECT Status FROM Commits WHERE CommitID = @goalID",
+            { goalID }
         )
 
-        if (!result.length) {
-            return res.status(404).json({ error: "No commit status found for this goal" })
-        }
+        if (!result.length)
+            res.status(404).json({ error: "No commit status found for this goal" })
 
         res.json({ message: `Commit status for goal ${goalID}`, data: result[0] })
-    } catch (error: any) {
-        console.error(error.message)
-        res.status(500).json({ error: error.message })
-    }
-}
-
-const updateCommitStatus = async (req: Request, res: Response) => {
-    try {
-        const { goalID } = req.params
-        const { status } = req.body
-
-        if (!goalID || !status) {
-            return res.status(400).json({ error: "Goal ID and status are required" })
-        }
-
-        const result = await query(
-            "UPDATE goal_commits SET status = ? WHERE goal_id = ?",
-            [status, goalID]
-        )
-
-        res.json({ message: `Commit status updated for goal ${goalID}`, data: result })
     } catch (error: any) {
         console.error(error.message)
         res.status(500).json({ error: error.message })
@@ -97,6 +92,5 @@ const updateCommitStatus = async (req: Request, res: Response) => {
 export default {
     getProductProgress,
     getFeatureProgress,
-    getCommitStatus,
-    updateCommitStatus,
+    getCommitStatus
 }
