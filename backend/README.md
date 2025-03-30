@@ -54,12 +54,21 @@
 
 ## Messages
 
-### [POST]   /featurechannel/:channelID/messages
-### [POST]   /productchannel/:channelID/messages
-### [GET]    /featurechannel/:channelID/messages
-### [GET]    /productchannel/:channelID/messages
-### [DELETE] /featurechannel/:channelID/messages/:messageid
-### [DELETE] /productchannel/:channelID/messages/:messageid
+- Feature ChannelID, Product ChannelID and UserID saved on authentication
+- Feature ChannelID & Product ChannelID used to find unique ChannelID to apply operations
+
+### [POST]   /messages/featurechannel
+*Send message to feature channel of authenticated in user*
+### [POST]   /messages/productchannel
+*Send message to productchannel channel of authenticated in user*
+### [GET]    /messages/featurechannel
+*Get all messages of the featurechannel of authenticated user*
+### [GET]    /messages/productchannel
+*Get all messages of the productchannel of authenticated user*
+### [DELETE] /messages/featurechannel
+*Delete message from the featurechannel. MessageID passed in body*
+### [DELETE] /messages/productchannel
+*Delete message from the productchannel. MessageID passed in body*
 
 ## Misc
 
