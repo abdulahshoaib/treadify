@@ -50,6 +50,10 @@ CREATE TABLE Products (
     FOREIGN KEY (PMID) REFERENCES Users(UserID) ON DELETE CASCADE
 )
 
+ALTER TABLE Products
+ADD Status VARCHAR(10) NOT NULL DEFAULT 'active'
+CHECK (Status IN ('deprecated', 'active'));
+
 CREATE TABLE Features (
     FeatureID INT PRIMARY KEY IDENTITY(1,1),
     ProductID INT NOT NULL,
@@ -141,7 +145,7 @@ CREATE TABLE ChannelMembers (
 
 CREATE TABLE UserGitHubIntegration (
     UserID INT PRIMARY KEY,
-    GitHubUsername VARCHAR(100) NOT NULL,
+    GitHubUsername VARCHAR(100) NOT NULL UNIQUE,
     AccessToken VARCHAR(255) NOT NULL,
     RefreshToken VARCHAR(255) DEFAULT NULL,
     TokenExpiry DATETIME DEFAULT NULL,
