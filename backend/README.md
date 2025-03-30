@@ -47,6 +47,8 @@ Register a new user account.
 **Request Body:**
 ```json
 {
+  "FirstName": "string",
+  "LastName": "string",
   "username": "string",
   "email": "string",
   "pass": "string"
