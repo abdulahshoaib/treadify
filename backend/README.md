@@ -1,5 +1,9 @@
 # Routes
 
+## TODO
+
+Implement the RBAC system to routes
+
 ## Auth
 
 ### [POST]  /auth/login
@@ -12,17 +16,29 @@
 
 ## Product Management
 
+
 ### [POST]  /productchannel
-### [POST]  /productchannel/:channelID/invite
-### [POST]  /productchannel/:channelID/features
-### [PATCH] /productchannel/:channelID/deprecate
-### [PATCH] /productchannel/:channelID/features/:featurechannel/tl
-### [PATCH] /featurechannel/:channelID/features/:featurechannel/dealine
-### [GET]   /productchannel/:channelID/deadline
-### [GET]   /productchannel/:channelID/members
-### [GET]   /productchannel/:channelID/goals
-### [GET]   /productchannel/:channelID/deadline
-### [GET]   /productchannel/:channelID/report
+*Create a new product channel*
+### [POST]  /productchannel/invite
+*Create a new channel invite to add members*
+### [POST]  /productchannel/features
+*Create a new feature channel for the product channel*
+    body: featureName, discription, technicalLeadID
+### [PATCH] /productchannel/deprecate
+*deprecate the channel*
+### [PATCH] /productchannel/features/tl
+*Assign TL to a channel*
+### [PATCH] /productchannel/features/dealine
+*Assign new deadline to feature*
+    body: featureID and deadline
+### [GET]   /productchannel/deadline
+*Get product current deadline (based of last feature deadline)*
+### [GET]   /productchannel/members
+*Get all members of channel*
+### [GET]   /productchannel/goals
+*Get all product channel goals (completed and on going features)*
+### [GET]   /productchannel/report
+*Get a report for product channel based of current goal status of all products*
 
 ## Feature Management
 

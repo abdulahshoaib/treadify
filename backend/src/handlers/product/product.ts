@@ -1,169 +1,250 @@
 import type { Request, Response } from "express"
 import { query } from "../../database/query.ts"
+import axios from "axios"
 
 const createProductChannel = async (req: Request, res: Response) => {
+    if(!req.session.User)
+        res.status(401).json({error: "Unauthorized Access"})
+
     try {
-        const { name, description } = req.body
+        const PMID = req.session.User?.id
+        const { Name, Description, RepoURL } = req.body
 
-        if (!name || !description) {
-            return res.status(400).json({ error: "Name and description are required" })
-        }
+        if (!Name || !Description || !RepoURL)
+            res.status(400).json({ err: "Name, Description, and RepoURL are required" })
 
-        const result = await query("INSERT INTO product_channels (name, description) VALUES (?, ?)", [name, description])
-        res.status(201).json({ message: `Created product channel: ${name}`, data: result })
-    } catch (error: any) {
-        console.error(error.message)
-        res.status(500).json({ error: error.message })
+        // regex to match the correct url
+        const match = RepoURL.match(/^https:\/\/github\.com\/([^\/]+)\/([^\/]+)$/)
+        if (!match)
+            res.status(400).json({ err: "Invalid GitHub repository URL format" })
+
+        const [, RepoOwner, RepoName] = match
+
+        const tokenResult = await query(
+            "SELECT AccessToken FROM UserGitHubIntegration WHERE UserID = @PMID",
+            { PMID }
+        )
+
+        const accessToken = tokenResult[0]?.AccessToken
+        if (!accessToken)
+            throw new Error("GitHub account not connected.")
+
+        const githubResponse = await axios.get(`https://api.github.com/repos/${RepoOwner}/${RepoName}`, {
+            headers: { Authorization: `Bearer ${accessToken}`, Accept: "application/vnd.github+json" }
+        })
+
+        const { default_branch: DefaultBranch } = githubResponse.data
+
+        const deadline = new Date()
+        deadline.setDate(deadline.getDate() + 60)
+
+        // start transaction
+        await query("BEGIN TRANSACTION")
+
+        // insert into products table
+        const productResult = await query(
+            `INSERT INTO Products (Name, Description, Deadline, PMID)
+             OUTPUT INSERTED.ProductID
+             VALUES (@Name, @Description, @Deadline, @PMID)`,
+            { Name, Description, Deadline: deadline, PMID }
+        )
+
+        const ProductID = productResult[0]?.ProductID
+        if (!ProductID)
+            throw new Error("Failed to create product.")
+
+        // insert into githubrepositories table
+        await query(
+            `INSERT INTO GitHubRepositories (ProductID, RepoOwner, RepoName, RepoURL, DefaultBranch)
+             VALUES (@ProductID, @RepoOwner, @RepoName, @RepoURL, @DefaultBranch)`,
+            { ProductID, RepoOwner, RepoName, RepoURL, DefaultBranch }
+        )
+
+        // commit transaction
+        await query("COMMIT")
+
+        res.status(201).json({ message: `Created product: ${Name} with GitHub repo`, ProductID })
+    } catch (err: any) {
+        console.error(err.message)
+        await query("ROLLBACK")
+        res.status(500).json({ err: err.message })
     }
 }
 
 const inviteToChannel = async (req: Request, res: Response) => {
+    if(!req.session.User)
+        res.status(401).json({error: "Unauthorized Access"})
+
     try {
-        const { channelID, userID } = req.body
-
-        if (!channelID || !userID) {
-            return res.status(400).json({ error: "Channel ID and User ID are required" })
-        }
-
-        const result = await query("INSERT INTO channel_members (channel_id, user_id) VALUES (?, ?)", [channelID, userID])
-        res.json({ message: `User ${userID} invited to channel ${channelID}`, data: result })
-    } catch (error: any) {
-        console.error(error.message)
-        res.status(500).json({ error: error.message })
+        req.session.User?.id
+        // TODO Create a channel invite system
+    } catch (err: any) {
+        console.error(err.message)
+        res.status(500).json({ err: err.message })
     }
 }
 
 const addFeature = async (req: Request, res: Response) => {
+    if(!req.session.User)
+        res.status(401).json({error: "Unauthorized Access"})
+
     try {
-        const { channelID, featureName, description } = req.body
+        const ProductID = req.session.User?.product
+        const { featureName, description, TLID } = req.body
 
-        if (!channelID || !featureName || !description) {
-            return res.status(400).json({ error: "Channel ID, Feature Name, and Description are required" })
-        }
+        if (!ProductID)
+            res.status(404).json({ err: "No Product channel found" })
 
-        const result = await query("INSERT INTO features (channel_id, name, description) VALUES (?, ?, ?)", [channelID, featureName, description])
-        res.status(201).json({ message: `Feature ${featureName} added to channel ${channelID}`, data: result })
-    } catch (error: any) {
-        console.error(error.message)
-        res.status(500).json({ error: error.message })
+        if (!featureName || !description)
+            res.status(400).json({ err: "Feature Name, and Description are required" })
+
+        const result = await query(
+            "INSERT INTO Features (ProductID, Name, Description, Deadline, TLID) VALUES (@ProductID, @Name, @Description, @Deadline, @TLID)",
+            { ProductID, Name: featureName, Description: description, Deadline: new Date(), TLID }
+        )
+
+        res.status(201).json({ message: `Feature ${featureName} added to channel`, data: result })
+    } catch (err: any) {
+        console.error(err.message)
+        res.status(500).json({ err: err.message })
     }
 }
 
 const deprecateChannel = async (req: Request, res: Response) => {
+    if(!req.session.User)
+        res.status(401).json({error: "Unauthorized Access"})
+
     try {
-        const { channelID } = req.params
+        const ProductID = req.session.User?.product
 
-        const result = await query("UPDATE product_channels SET status = 'deprecated' WHERE id = ?", [channelID])
-        res.json({ message: `Channel ${channelID} has been deprecated`, data: result })
-    } catch (error: any) {
-        console.error(error.message)
-        res.status(500).json({ error: error.message })
-    }
-}
-
-const updateFeatureTL = async (req: Request, res: Response) => {
-    try {
-        const { featureID, timeline } = req.body
-
-        if (!featureID || !timeline) {
-            return res.status(400).json({ error: "Feature ID and Timeline are required" })
-        }
-
-        const result = await query("UPDATE features SET timeline = ? WHERE id = ?", [timeline, featureID])
-        res.json({ message: `Feature ${featureID} timeline updated`, data: result })
-    } catch (error: any) {
-        console.error(error.message)
-        res.status(500).json({ error: error.message })
+        const result = await query(
+            "UPDATE Products SET status = 'deprecated' WHERE ProductID = @ProductID",
+            { ProductID }
+        )
+        res.json({ message: `Channel ${ProductID} has been deprecated`, data: result })
+    } catch (err: any) {
+        console.error(err.message)
+        res.status(500).json({ err: err.message })
     }
 }
 
 const updateFeatureDeadline = async (req: Request, res: Response) => {
+    if(!req.session.User)
+        res.status(401).json({error: "Unauthorized Access"})
+
     try {
         const { featureID, deadline } = req.body
 
-        if (!featureID || !deadline) {
-            return res.status(400).json({ error: "Feature ID and Deadline are required" })
-        }
+        if (!featureID || !deadline)
+            res.status(400).json({ err: "Feature ID and Deadline are required" })
 
-        const result = await query("UPDATE features SET deadline = ? WHERE id = ?", [deadline, featureID])
+        const result = await query(
+            "UPDATE Features SET Deadline = @Deadline WHERE FeatureID = @FeatureID",
+            { Deadline: deadline, FeatureID: featureID }
+        )
+
         res.json({ message: `Feature ${featureID} deadline updated`, data: result })
-    } catch (error: any) {
-        console.error(error.message)
-        res.status(500).json({ error: error.message })
+    } catch (err: any) {
+        console.error(err.message)
+        res.status(500).json({ err: err.message })
     }
 }
 
 const getChannelDeadline = async (req: Request, res: Response) => {
+    if(!req.session.User)
+        res.status(401).json({error: "Unauthorized Access"})
+
     try {
-        const { channelID } = req.params
+        const ProductID = req.session.User?.product
 
-        const result = await query("SELECT deadline FROM product_channels WHERE id = ?", [channelID])
-        if (!result.length) {
-            return res.status(404).json({ error: "Channel not found" })
-        }
+        const result = await query(
+            "SELECT Deadline FROM Products WHERE ProductID = @ProductID",
+            { ProductID }
+        )
 
-        res.json({ message: `Deadline for channel ${channelID}`, data: result })
-    } catch (error: any) {
-        console.error(error.message)
-        res.status(500).json({ error: error.message })
+        if (!result.length)
+            res.status(404).json({ err: "Channel not found" })
+
+        res.json({ message: `Deadline for channel ${ProductID}`, data: result })
+    } catch (err: any) {
+        console.error(err.message)
+        res.status(500).json({ err: err.message })
     }
 }
 
 const getChannelMembers = async (req: Request, res: Response) => {
+    if(!req.session.User)
+        res.status(401).json({error: "Unauthorized Access"})
+
     try {
-        const { channelID } = req.params
+        const ProductID = req.session.User?.product
 
         const result = await query(
-            "SELECT users.* FROM users JOIN channel_members ON users.id = channel_members.user_id WHERE channel_members.channel_id = ?",
-            [channelID]
+            `SELECT u.*
+             FROM Users u
+             JOIN ChannelMembers cm ON u.UserID = cm.UserID
+             WHERE cm.ProductID = @ProductID `,
+            { ProductID }
         )
 
-        res.json({ message: `Members of channel ${channelID}`, data: result })
-    } catch (error: any) {
-        console.error(error.message)
-        res.status(500).json({ error: error.message })
+        res.json({ message: `Members of channel ${ProductID}`, data: result })
+    } catch (err: any) {
+        console.error(err.message)
+        res.status(500).json({ err: err.message })
     }
 }
 
 const getChannelGoals = async (req: Request, res: Response) => {
+    if(!req.session.User)
+        res.status(401).json({error: "Unauthorized Access"})
+
     try {
-        const { channelID } = req.params
+        const ProductID = req.session.User?.product
 
-        const result = await query("SELECT * FROM goals WHERE channel_id = ?", [channelID])
+        const result = await query(
+            `SELECT f.FeatureID, f.Name
+            FROM Features f
+            WHERE f.ProductID = @ProductID`,
+            { ProductID }
+        )
 
-        res.json({ message: `Goals for channel ${channelID}`, data: result })
-    } catch (error: any) {
-        console.error(error.message)
-        res.status(500).json({ error: error.message })
+        res.json({ message: `Goals for channel ${ProductID}`, data: result })
+    } catch (err: any) {
+        console.error(err.message)
+        res.status(500).json({ err: err.message })
     }
 }
 
 const getChannelReport = async (req: Request, res: Response) => {
+    if(!req.session.User)
+        res.status(401).json({error: "Unauthorized Access"})
+
     try {
-        const { channelID } = req.params
+        const ProductID = req.session.User?.product
 
         const result = await query(`
             SELECT
-                c.name AS channel_name,
-                COUNT(DISTINCT m.user_id) AS total_members,
-                COUNT(DISTINCT f.id) AS total_features,
-                COUNT(DISTINCT g.id) AS total_goals
-            FROM product_channels c
-            LEFT JOIN channel_members m ON c.id = m.channel_id
-            LEFT JOIN features f ON c.id = f.channel_id
-            LEFT JOIN goals g ON c.id = g.channel_id
-            WHERE c.id = ?
-            GROUP BY c.name
-        `, [channelID])
+                p.Name AS ProductName,
+                COUNT(DISTINCT cm.UserID) AS TotalMembers,
+                COUNT(DISTINCT f.FeatureID) AS TotalFeatures,
+                COUNT(DISTINCT g.GoalID) AS TotalGoals
+            FROM Products p
+            LEFT JOIN ChannelMembers cm ON p.ProductID = cm.ProductID
+            LEFT JOIN Features f ON p.ProductID = f.ProductID
+            LEFT JOIN Goals g ON f.FeatureID = g.FeatureID
+            WHERE p.ProductID = @ProductID
+            GROUP BY p.Name`,
+            { ProductID }
+        );
 
         if (!result.length) {
-            return res.status(404).json({ error: "Channel not found" })
+            res.status(404).json({ err: "Channel not found" })
         }
 
-        res.json({ message: `Report for channel ${channelID}`, data: result })
-    } catch (error: any) {
-        console.error(error.message)
-        res.status(500).json({ error: error.message })
+        res.json({ message: `Report for channel ${ProductID}`, data: result })
+    } catch (err: any) {
+        console.error(err.message)
+        res.status(500).json({ err: err.message })
     }
 }
 
@@ -172,11 +253,9 @@ export default {
     inviteToChannel,
     addFeature,
     deprecateChannel,
-    updateFeatureTL,
     updateFeatureDeadline,
     getChannelDeadline,
     getChannelGoals,
     getChannelMembers,
     getChannelReport,
 }
-
