@@ -2,6 +2,9 @@ import type { Request, Response } from "express"
 import { query } from "../../database/query.ts"
 
 const getProductProgress = async (req: Request, res: Response) => {
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
+
     try {
         const ProductID = req.session.User?.product
 
@@ -34,6 +37,9 @@ const getProductProgress = async (req: Request, res: Response) => {
 }
 
 const getFeatureProgress = async (req: Request, res: Response) => {
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
+
     try {
         const FeatureID = req.session.User?.feature
 
@@ -67,6 +73,9 @@ const getFeatureProgress = async (req: Request, res: Response) => {
 }
 
 const getCommitStatus = async (req: Request, res: Response) => {
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
+
     try {
         const { goalID } = req.params
 

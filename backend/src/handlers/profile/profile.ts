@@ -2,6 +2,9 @@ import type { Request, Response } from "express"
 import { query } from "../../database/query.ts"
 
 const getUserProfile = async (req: Request, res: Response) => {
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
+
     try {
         const UserID = req.session.User?.id
 
@@ -29,6 +32,9 @@ const getUserProfile = async (req: Request, res: Response) => {
 }
 
 const updateUserProfile = async (req: Request, res: Response) => {
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
+
     try {
         const UserID = req.session.User?.id
         const { Email, ProfileImgPath } = req.body
