@@ -5,9 +5,9 @@ import { query } from "../../database/query.ts"
 
 export const signup = async (req: Request, res: Response) => {
     try {
-        const { FirstName, LastName, username, email, pass } = req.body
+        const { FirstName, LastName, role, username, email, pass } = req.body
 
-        if (!username || !email || !pass)
+        if (!FirstName || !LastName || !role || !username || !email || !pass)
             res.status(400).json({ error: "Invalid Input" })
 
         // hash the password
@@ -18,6 +18,29 @@ export const signup = async (req: Request, res: Response) => {
              VALUES (@FirstName, @LastName, @username, @email, @hash)`,
             { FirstName, LastName, username, email, hash }
         )
+
+        const userResult = await query(
+            `SELECT UserID FROM Users WHERE Username = @username`,
+            { username }
+        )
+
+        const UserID = userResult[0]?.UserID;
+
+        const roleRes = await query(
+            `SELECT RoleID FROM Roles WHERE Name = @role`,
+            { role }
+        )
+
+        if (roleRes?.length === 0)
+            res.status(400).json({ error: "Invalid role" });
+
+        const RoleID = roleRes[0]?.RoleID;
+
+        await query(
+            `INSERT INTO UserRoles (UserID, RoleID) VALUES (@UserID, @RoleID)`,
+            { UserID, RoleID }
+        )
+
         res.status(201).json({ message: "User Created" })
 
     } catch (err: any) {
