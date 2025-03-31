@@ -106,7 +106,7 @@ const getActiveFeature = async (req: Request, res: Response) => {
         const ProductID = req.session.User?.product
 
         if (!ProductID)
-            return res.status(400).json({ error: "ProductID not found in session" })
+            res.status(400).json({ error: "ProductID not found in session" })
 
         const result = await query(
             `SELECT * FROM FeatureOverviewView
@@ -120,8 +120,35 @@ const getActiveFeature = async (req: Request, res: Response) => {
         res.json({ message: `Feature Overview`, data: result })
 
     } catch (err: any) {
-        console.error(err.message);
-        res.status(500).json({ error: "Internal Server Error" });
+        console.error(err.message)
+        res.status(500).json({ error: "Internal Server Error" })
+    }
+}
+
+const getGoalStatus = async (req: Request, res: Response) => {
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
+
+    try {
+        const FeatureID = req.session.User?.feature
+
+        if (!FeatureID)
+            res.status(400).json({ error: "FeatureID not found in session" })
+
+        const result = await query(
+            `SELECT * FROM GoalStatusView
+             WHERE FeatureID = @FeatureID`,
+            { FeatureID }
+        )
+
+        if (result.length === 0)
+            res.status(404).json({ error: "No data found" })
+
+        res.json({ message: `Feature Overview`, data: result })
+
+    } catch (err: any) {
+        console.error(err.message)
+        res.status(500).json({ error: "Internal Server Error" })
     }
 }
 
@@ -129,5 +156,6 @@ export default {
     getProductProgress,
     getFeatureProgress,
     getCommitStatus,
-    getActiveFeature
+    getActiveFeature,
+    getGoalStatus
 }
