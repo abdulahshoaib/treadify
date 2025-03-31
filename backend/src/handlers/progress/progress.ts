@@ -1,9 +1,21 @@
 import type { Request, Response } from "express"
 import { query } from "../../database/query.ts"
+import { hasPermission } from "../RABC.ts"
 
 const getProductProgress = async (req: Request, res: Response) => {
     if (!req.session.User)
         res.status(401).json({ error: "Unauthorized Access" })
+
+    const role = req.session.User?.role as string
+
+    if(!role)
+        res.status(403).json({error: "No role assigned in session"})
+
+    const permissionReq = "getProductProgress"
+    const hasPermRes = await hasPermission(role, permissionReq)
+
+    if(!hasPermRes)
+        res.status(403).json({error: "Insufficent Permission"})
 
     try {
         const ProductID = req.session.User?.product
@@ -39,6 +51,17 @@ const getProductProgress = async (req: Request, res: Response) => {
 const getFeatureProgress = async (req: Request, res: Response) => {
     if (!req.session.User)
         res.status(401).json({ error: "Unauthorized Access" })
+
+    const role = req.session.User?.role as string
+
+    if(!role)
+        res.status(403).json({error: "No role assigned in session"})
+
+    const permissionReq = "getFeatureProgress"
+    const hasPermRes = await hasPermission(role, permissionReq)
+
+    if(!hasPermRes)
+        res.status(403).json({error: "Insufficent Permission"})
 
     try {
         const FeatureID = req.session.User?.feature
@@ -76,6 +99,17 @@ const getCommitStatus = async (req: Request, res: Response) => {
     if (!req.session.User)
         res.status(401).json({ error: "Unauthorized Access" })
 
+    const role = req.session.User?.role as string
+
+    if(!role)
+        res.status(403).json({error: "No role assigned in session"})
+
+    const permissionReq = "getCommitStatus"
+    const hasPermRes = await hasPermission(role, permissionReq)
+
+    if(!hasPermRes)
+        res.status(403).json({error: "Insufficent Permission"})
+
     try {
         const { goalID } = req.params
 
@@ -101,6 +135,17 @@ const getCommitStatus = async (req: Request, res: Response) => {
 const getActiveFeature = async (req: Request, res: Response) => {
     if (!req.session.User)
         res.status(401).json({ error: "Unauthorized Access" })
+
+    const role = req.session.User?.role as string
+
+    if(!role)
+        res.status(403).json({error: "No role assigned in session"})
+
+    const permissionReq = "getActiveFeature"
+    const hasPermRes = await hasPermission(role, permissionReq)
+
+    if(!hasPermRes)
+        res.status(403).json({error: "Insufficent Permission"})
 
     try {
         const ProductID = req.session.User?.product
@@ -129,6 +174,17 @@ const getGoalStatus = async (req: Request, res: Response) => {
     if (!req.session.User)
         res.status(401).json({ error: "Unauthorized Access" })
 
+    const role = req.session.User?.role as string
+
+    if(!role)
+        res.status(403).json({error: "No role assigned in session"})
+
+    const permissionReq = "getGoalStatus"
+    const hasPermRes = await hasPermission(role, permissionReq)
+
+    if(!hasPermRes)
+        res.status(403).json({error: "Insufficent Permission"})
+
     try {
         const FeatureID = req.session.User?.feature
 
@@ -155,6 +211,17 @@ const getGoalStatus = async (req: Request, res: Response) => {
 const getCommitOverview = async (req: Request, res: Response) => {
     if (!req.session.User)
         res.status(401).json({ error: "Unauthorized Access" })
+
+    const role = req.session.User?.role as string
+
+    if(!role)
+        res.status(403).json({error: "No role assigned in session"})
+
+    const permissionReq = "getCommitOverview"
+    const hasPermRes = await hasPermission(role, permissionReq)
+
+    if(!hasPermRes)
+        res.status(403).json({error: "Insufficent Permission"})
 
     try {
         const FeatureID = req.session.User?.feature
