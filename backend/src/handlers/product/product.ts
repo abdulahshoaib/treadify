@@ -1,10 +1,22 @@
 import type { Request, Response } from "express"
 import { query } from "../../database/query.ts"
 import axios from "axios"
+import { hasPermission } from "../RABC.ts"
 
 const createProductChannel = async (req: Request, res: Response) => {
     if(!req.session.User)
         res.status(401).json({error: "Unauthorized Access"})
+
+    const role = req.session.User?.role as string
+
+    if(!role)
+        res.status(403).json({error: "No role assigned in session"})
+
+    const permissionReq = "createProductChannel"
+    const hasPermRes = await hasPermission(role, permissionReq)
+
+    if(!hasPermRes)
+        res.status(403).json({error: "Insufficent Permission"})
 
     try {
         const PMID = req.session.User?.id
@@ -88,6 +100,17 @@ const addFeature = async (req: Request, res: Response) => {
     if(!req.session.User)
         res.status(401).json({error: "Unauthorized Access"})
 
+    const role = req.session.User?.role as string
+
+    if(!role)
+        res.status(403).json({error: "No role assigned in session"})
+
+    const permissionReq = "addFeature"
+    const hasPermRes = await hasPermission(role, permissionReq)
+
+    if(!hasPermRes)
+        res.status(403).json({error: "Insufficent Permission"})
+
     try {
         const ProductID = req.session.User?.product
         const { featureName, description, TLID } = req.body
@@ -114,6 +137,17 @@ const deprecateChannel = async (req: Request, res: Response) => {
     if(!req.session.User)
         res.status(401).json({error: "Unauthorized Access"})
 
+    const role = req.session.User?.role as string
+
+    if(!role)
+        res.status(403).json({error: "No role assigned in session"})
+
+    const permissionReq = "deprecateChannel"
+    const hasPermRes = await hasPermission(role, permissionReq)
+
+    if(!hasPermRes)
+        res.status(403).json({error: "Insufficent Permission"})
+
     try {
         const ProductID = req.session.User?.product
 
@@ -131,6 +165,17 @@ const deprecateChannel = async (req: Request, res: Response) => {
 const updateFeatureDeadline = async (req: Request, res: Response) => {
     if(!req.session.User)
         res.status(401).json({error: "Unauthorized Access"})
+
+    const role = req.session.User?.role as string
+
+    if(!role)
+        res.status(403).json({error: "No role assigned in session"})
+
+    const permissionReq = "updateFeatureDeadline"
+    const hasPermRes = await hasPermission(role, permissionReq)
+
+    if(!hasPermRes)
+        res.status(403).json({error: "Insufficent Permission"})
 
     try {
         const { featureID, deadline } = req.body
@@ -176,6 +221,8 @@ const getChannelMembers = async (req: Request, res: Response) => {
     if(!req.session.User)
         res.status(401).json({error: "Unauthorized Access"})
 
+    // no need for RBAC users can get
+
     try {
         const ProductID = req.session.User?.product
 
@@ -197,6 +244,8 @@ const getChannelMembers = async (req: Request, res: Response) => {
 const getChannelGoals = async (req: Request, res: Response) => {
     if(!req.session.User)
         res.status(401).json({error: "Unauthorized Access"})
+
+    // no need for RBAC users can get
 
     try {
         const ProductID = req.session.User?.product
