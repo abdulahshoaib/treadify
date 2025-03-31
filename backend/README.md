@@ -324,6 +324,8 @@ Create a new product channel with GitHub repository integration.
 **Error Responses:**
 - `400` - Missing required fields or invalid GitHub URL format
 - `401` - Unauthorized Access
+- `403` - No role assigned
+- `403` - Insufficent Permissions
 - `404` - GitHub account not connected
 - `500` - GitHub API error or database transaction failure
 
@@ -359,6 +361,8 @@ Add a new feature to the product channel.
 **Error Responses:**
 - `400` - Missing required fields
 - `401` - Unauthorized Access
+- `403` - No role assigned
+- `403` - Insufficent Permissions
 - `404` - Product channel not found
 - `500` - Database error
 
@@ -378,6 +382,8 @@ Deprecate the product channel.
 
 **Error Responses:**
 - `401` - Unauthorized Access
+- `403` - No role assigned
+- `403` - Insufficent Permissions
 - `500` - Database error
 
 ---
@@ -405,6 +411,8 @@ Update feature deadline.
 **Error Responses:**
 - `400` - Missing required fields
 - `401` - Unauthorized Access
+- `403` - No role assigned
+- `403` - Insufficent Permissions
 - `500` - Database error
 
 ---
@@ -678,6 +686,8 @@ Get progress metrics for the current user's product.
 
 **Error Responses:**
 - `400` - Product ID missing in session
+- `403` - No role assigned
+- `403` - Insufficent Permissions
 - `404` - No progress data found
 - `500` - Database error
 
@@ -706,6 +716,8 @@ Get progress metrics for the current user's feature.
 
 **Error Responses:**
 - `400` - Feature ID missing in session
+- `403` - No role assigned
+- `403` - Insufficent Permissions
 - `404` - No progress data found
 - `500` - Database error
 
@@ -731,6 +743,8 @@ Get commit status for a specific goal.
 
 **Error Responses:**
 - `400` - Missing goal ID
+- `403` - No role assigned
+- `403` - Insufficent Permissions
 - `404` - No commit found
 - `500` - Database error
 
@@ -738,7 +752,64 @@ Get commit status for a specific goal.
 - Used to check review status of GitHub commits linked to goals
 
 ---
-Here's the **User Profile** section for your documentation:
+
+### `GET` /progress/goal-status
+Get goal status for the current user's feature.
+
+**Authentication Required:** Yes
+**Session Requirements:**
+- `FeatureID` must be present in user session
+
+**Response (200):**
+```json
+{
+  "message": "Feature Overview",
+  "data": [
+    {
+      "GoalID": "number",
+      "GoalName": "string",
+      "Status": "string"
+    }
+  ]
+}
+```
+
+**Error Responses:**
+- `400` - Feature ID missing in session
+- `403` - No role assigned
+- `403` - Insufficient Permissions
+- `404` - No data found
+- `500` - Database error
+
+---
+
+### `GET` /progress/commit-overview
+Get commit overview for the current user's feature.
+
+**Authentication Required:** Yes
+**Session Requirements:**
+- `FeatureID` must be present in user session
+
+**Response (200):**
+```json
+{
+  "message": "Feature Overview",
+  "data": [
+    {
+      "CommitID": "number",
+      "CommitMessage": "string",
+      "Status": "string"
+    }
+  ]
+}
+```
+
+**Error Responses:**
+- `400` - Feature ID missing in session
+- `403` - No role assigned
+- `403` - Insufficient Permissions
+- `404` - No data found
+- `500` - Database error
 
 ---
 
