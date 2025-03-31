@@ -43,6 +43,7 @@ Authenticate a user and create a session.
 - Session cookie is set and used for subsequent authenticated requests
 
 ---
+
 ### `POST` /auth/signup
 Register a new user account.
 
@@ -72,6 +73,7 @@ Register a new user account.
 - Password is hashed with bcrypt before storing in the database
 
 ---
+
 ### `POST` /auth/logout
 Ends the current user session.
 
@@ -96,6 +98,7 @@ Ends the current user session.
 Retrieve profile information for a specific user.
 
 ---
+
 ### `PATCH` /user/:username/profile
 Update profile information for a specific user.
 
@@ -113,6 +116,7 @@ Initiates GitHub OAuth flow for linking GitHub account.
 - `401` - Unauthorized Access
 
 ---
+
 ### `GET` /auth/github/callback
 Callback endpoint for GitHub OAuth process.
 
@@ -172,6 +176,7 @@ Create a new goal in the feature channel.
 - `500` - [Error message]
 
 ---
+
 ### `POST` /featurechannel/commit/:goalid
 Create a new commit against a goal in the feature channel.
 
@@ -210,6 +215,7 @@ Create a new commit against a goal in the feature channel.
 - Stores commit message and URL
 
 ---
+
 ### `GET` /featurechannel/
 Get all the information of the feature channel.
 
@@ -230,6 +236,7 @@ Get all the information of the feature channel.
 - `500` - [Error message]
 
 ---
+
 ### `GET` /featurechannel/members
 Get all the members of the feature channel.
 
@@ -249,6 +256,7 @@ Get all the members of the feature channel.
 - `500` - [Error message]
 
 ---
+
 ### `GET` /featurechannel/goals
 Get all the goals of the feature channel.
 
@@ -268,6 +276,7 @@ Get all the goals of the feature channel.
 - `500` - [Error message]
 
 ---
+
 ### `PATCH` /featurechannel/commit/:commitID
 Update the commit against some goal.
 
@@ -336,6 +345,7 @@ Create a new product channel with GitHub repository integration.
 - Uses database transaction for atomic operations
 
 ---
+
 ### `POST` /productchannel/features
 Add a new feature to the product channel.
 
@@ -367,6 +377,7 @@ Add a new feature to the product channel.
 - `500` - Database error
 
 ---
+
 ### `PATCH` /productchannel/deprecate
 Deprecate the product channel.
 
@@ -387,6 +398,33 @@ Deprecate the product channel.
 - `500` - Database error
 
 ---
+
+### `POST` /productchannel/invite
+Generate an invite code for the product-level channel.
+
+**Authentication Required:** Yes
+
+**Request Body:**
+None required; the request is authenticated based on the session.
+
+**Response (201):**
+```json
+{
+  "message": "Invite code generated successfully",
+  "inviteCode": "string (invite code)"
+}
+```
+
+**Error Responses:**
+- `400` - ProductID is required
+- `401` - Unauthorized Access
+- `403` - No role assigned
+- `403` - Insufficient Permissions
+- `404` - No product-level channel found
+- `500` - Database error
+
+---
+
 ### `PATCH` /productchannel/features/deadline
 Update feature deadline.
 
@@ -416,6 +454,7 @@ Update feature deadline.
 - `500` - Database error
 
 ---
+
 ### `GET` /productchannel/deadline
 Get product channel deadline.
 
@@ -437,6 +476,7 @@ Get product channel deadline.
 - `500` - Database error
 
 ---
+
 ### `GET` /productchannel/members
 Get all members of the product channel.
 
@@ -462,6 +502,7 @@ Get all members of the product channel.
 - `500` - Database error
 
 ---
+
 ### `GET` /productchannel/goals
 Get all features (goals) for the product channel.
 
@@ -485,6 +526,7 @@ Get all features (goals) for the product channel.
 - `500` - Database error
 
 ---
+
 ### `GET` /productchannel/report
 Get product channel report with statistics.
 
@@ -888,6 +930,7 @@ Update the authenticated user's profile information.
 Get current user's permissions.
 
 ---
+
 ### `GET` /admin/stats
 Get admin statistics (admin-only).
 
