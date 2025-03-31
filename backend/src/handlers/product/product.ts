@@ -2,21 +2,22 @@ import type { Request, Response } from "express"
 import { query } from "../../database/query.ts"
 import axios from "axios"
 import { hasPermission } from "../RABC.ts"
+import { randomBytes } from 'crypto'
 
 const createProductChannel = async (req: Request, res: Response) => {
-    if(!req.session.User)
-        res.status(401).json({error: "Unauthorized Access"})
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
 
     const role = req.session.User?.role as string
 
-    if(!role)
-        res.status(403).json({error: "No role assigned in session"})
+    if (!role)
+        res.status(403).json({ error: "No role assigned in session" })
 
     const permissionReq = "createProductChannel"
     const hasPermRes = await hasPermission(role, permissionReq)
 
-    if(!hasPermRes)
-        res.status(403).json({error: "Insufficent Permission"})
+    if (!hasPermRes)
+        res.status(403).json({ error: "Insufficent Permission" })
 
     try {
         const PMID = req.session.User?.id
@@ -84,12 +85,47 @@ const createProductChannel = async (req: Request, res: Response) => {
 }
 
 const inviteToChannel = async (req: Request, res: Response) => {
-    if(!req.session.User)
-        res.status(401).json({error: "Unauthorized Access"})
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
+
+    const role = req.session.User?.role as string
+
+    if (!role)
+        res.status(403).json({ error: "No role assigned in session" })
+
+    const permissionReq = "createProductChannel"
+    const hasPermRes = await hasPermission(role, permissionReq)
+
+    if (!hasPermRes)
+        res.status(403).json({ error: "Insufficent Permission" })
 
     try {
-        req.session.User?.id
-        // TODO Create a channel invite system
+        const ProductID = req.session.User?.product
+
+        if (!ProductID)
+            res.status(400).json({ error: "ProductID is required" })
+
+        const channelResult = await query(
+            `SELECT ChannelID
+             FROM Channels
+             WHERE ProductID = @ProductID AND FeatureID IS NULL`,
+            { ProductID }
+        )
+
+        if (!channelResult || channelResult.length === 0)
+            res.status(404).json({ error: "No product-level channel found" })
+
+        const ChannelID = channelResult[0].ChannelID;
+        const inviteCode = randomBytes(4).toString('hex').toLowerCase();
+
+        await query(
+            `INSERT INTO ChannelInvites (ChannelID, Code, CreatedByID)
+            VALUES (@ChannelID, @Code, @CreatedByID)`,
+            { ChannelID, Code: inviteCode, CreatedByID: req.session.User?.id }
+        )
+
+        res.status(201).json({ message: `Invite code generated successfully`, inviteCode })
+
     } catch (err: any) {
         console.error(err.message)
         res.status(500).json({ err: err.message })
@@ -97,19 +133,19 @@ const inviteToChannel = async (req: Request, res: Response) => {
 }
 
 const addFeature = async (req: Request, res: Response) => {
-    if(!req.session.User)
-        res.status(401).json({error: "Unauthorized Access"})
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
 
     const role = req.session.User?.role as string
 
-    if(!role)
-        res.status(403).json({error: "No role assigned in session"})
+    if (!role)
+        res.status(403).json({ error: "No role assigned in session" })
 
     const permissionReq = "addFeature"
     const hasPermRes = await hasPermission(role, permissionReq)
 
-    if(!hasPermRes)
-        res.status(403).json({error: "Insufficent Permission"})
+    if (!hasPermRes)
+        res.status(403).json({ error: "Insufficent Permission" })
 
     try {
         const ProductID = req.session.User?.product
@@ -134,19 +170,19 @@ const addFeature = async (req: Request, res: Response) => {
 }
 
 const deprecateChannel = async (req: Request, res: Response) => {
-    if(!req.session.User)
-        res.status(401).json({error: "Unauthorized Access"})
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
 
     const role = req.session.User?.role as string
 
-    if(!role)
-        res.status(403).json({error: "No role assigned in session"})
+    if (!role)
+        res.status(403).json({ error: "No role assigned in session" })
 
     const permissionReq = "deprecateChannel"
     const hasPermRes = await hasPermission(role, permissionReq)
 
-    if(!hasPermRes)
-        res.status(403).json({error: "Insufficent Permission"})
+    if (!hasPermRes)
+        res.status(403).json({ error: "Insufficent Permission" })
 
     try {
         const ProductID = req.session.User?.product
@@ -163,19 +199,19 @@ const deprecateChannel = async (req: Request, res: Response) => {
 }
 
 const updateFeatureDeadline = async (req: Request, res: Response) => {
-    if(!req.session.User)
-        res.status(401).json({error: "Unauthorized Access"})
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
 
     const role = req.session.User?.role as string
 
-    if(!role)
-        res.status(403).json({error: "No role assigned in session"})
+    if (!role)
+        res.status(403).json({ error: "No role assigned in session" })
 
     const permissionReq = "updateFeatureDeadline"
     const hasPermRes = await hasPermission(role, permissionReq)
 
-    if(!hasPermRes)
-        res.status(403).json({error: "Insufficent Permission"})
+    if (!hasPermRes)
+        res.status(403).json({ error: "Insufficent Permission" })
 
     try {
         const { featureID, deadline } = req.body
@@ -196,8 +232,8 @@ const updateFeatureDeadline = async (req: Request, res: Response) => {
 }
 
 const getChannelDeadline = async (req: Request, res: Response) => {
-    if(!req.session.User)
-        res.status(401).json({error: "Unauthorized Access"})
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
 
     try {
         const ProductID = req.session.User?.product
@@ -218,8 +254,8 @@ const getChannelDeadline = async (req: Request, res: Response) => {
 }
 
 const getChannelMembers = async (req: Request, res: Response) => {
-    if(!req.session.User)
-        res.status(401).json({error: "Unauthorized Access"})
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
 
     // no need for RBAC users can get
 
@@ -242,8 +278,8 @@ const getChannelMembers = async (req: Request, res: Response) => {
 }
 
 const getChannelGoals = async (req: Request, res: Response) => {
-    if(!req.session.User)
-        res.status(401).json({error: "Unauthorized Access"})
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
 
     // no need for RBAC users can get
 
@@ -265,8 +301,8 @@ const getChannelGoals = async (req: Request, res: Response) => {
 }
 
 const getChannelReport = async (req: Request, res: Response) => {
-    if(!req.session.User)
-        res.status(401).json({error: "Unauthorized Access"})
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
 
     try {
         const ProductID = req.session.User?.product
