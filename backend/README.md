@@ -921,4 +921,3 @@ Get admin statistics (admin-only).
 5. User can then link commits to goals in feature channels
 
 ## TODO
-- Create channel invite system
