@@ -1,10 +1,22 @@
 import axios from "axios"
 import type { Request, Response } from "express"
 import { query } from "../../database/query.ts"
+import { hasPermission } from "../RABC.ts"
 
 const createFeatureGoals = async (req: Request, res: Response) => {
-    if(!req.session.User)
-        res.status(401).json({error: "Unauthorized Access"})
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
+
+    const role = req.session.User?.role as string
+
+    if(!role)
+        res.status(403).json({error: "No role assigned in session"})
+
+    const permissionReq = "createFeatureGoals"
+    const hasPermRes = await hasPermission(role, permissionReq)
+
+    if(!hasPermRes)
+        res.status(403).json({error: "Insufficent Permission"})
 
     try {
         const FeatureID = req.session.User?.feature
@@ -12,10 +24,10 @@ const createFeatureGoals = async (req: Request, res: Response) => {
         const { name, description, deadline } = req.body
 
         if (!FeatureID)
-             res.status(403).json({ error: "No feature assigned in session" })
+            res.status(403).json({ error: "No feature assigned in session" })
 
         if (!name)
-             res.status(400).json({ error: "Goal name is required" })
+            res.status(400).json({ error: "Goal name is required" })
 
         const result = await query(
             "INSERT INTO Goals (FeatureID, Name, Description, CreatedByID, Deadline) VALUES (@FeatureID, @Name, @Description, @CreatedByID, @Deadline)",
@@ -31,8 +43,19 @@ const createFeatureGoals = async (req: Request, res: Response) => {
 
 // frontend api call to github to get the user all his commits and then send SHA here
 const commitToGoal = async (req: Request, res: Response) => {
-    if(!req.session.User)
-        res.status(401).json({error: "Unauthorized Access"})
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
+
+    const role = req.session.User?.role as string
+
+    if(!role)
+        res.status(403).json({error: "No role assigned in session"})
+
+    const permissionReq = "commitToGoal"
+    const hasPermRes = await hasPermission(role, permissionReq)
+
+    if(!hasPermRes)
+        res.status(403).json({error: "Insufficent Permission"})
 
     try {
         const DevID = req.session.User?.id
@@ -40,10 +63,10 @@ const commitToGoal = async (req: Request, res: Response) => {
         const { gitHubCommitSHA } = req.body;
 
         if (!DevID)
-             res.status(403).json({ error: "User must be logged in" })
+            res.status(403).json({ error: "User must be logged in" })
 
         if (!gitHubCommitSHA)
-             res.status(400).json({ error: "GitHub commit SHA is required" });
+            res.status(400).json({ error: "GitHub commit SHA is required" });
 
         const existingCommit = await query(
             "SELECT 1 FROM Commits WHERE GoalID = @GoalID AND DevID = @DevID",
@@ -51,7 +74,7 @@ const commitToGoal = async (req: Request, res: Response) => {
         )
 
         if (existingCommit.length)
-             res.status(409).json({ error: "A commit is already attached to this goal" })
+            res.status(409).json({ error: "A commit is already attached to this goal" })
 
         const userGitHub = await query(
             "SELECT GitHubUsername, AccessToken FROM UserGitHubIntegration WHERE UserID = @UserID",
@@ -59,7 +82,7 @@ const commitToGoal = async (req: Request, res: Response) => {
         )
 
         if (!userGitHub.length)
-             res.status(404).json({ error: "GitHub account not linked" })
+            res.status(404).json({ error: "GitHub account not linked" })
 
         const { GitHubUsername, AccessToken } = userGitHub[0]
 
@@ -74,7 +97,7 @@ const commitToGoal = async (req: Request, res: Response) => {
         )
 
         if (!repoData.length)
-             res.status(404).json({ error: "No GitHub repo linked to goal" })
+            res.status(404).json({ error: "No GitHub repo linked to goal" })
 
         const { RepoOwner, RepoName } = repoData[0]
 
@@ -84,7 +107,7 @@ const commitToGoal = async (req: Request, res: Response) => {
         ).catch(() => null)
 
         if (!commitResponse)
-             res.status(404).json({ error: "Commit not found in the correct GitHub repository" })
+            res.status(404).json({ error: "Commit not found in the correct GitHub repository" })
 
         const { sha, commit, html_url } = commitResponse?.data
 
@@ -109,19 +132,21 @@ const commitToGoal = async (req: Request, res: Response) => {
 }
 
 const getFeatureChannel = async (req: Request, res: Response) => {
-    if(!req.session.User)
-        res.status(401).json({error: "Unauthorized Access"})
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
+
+    // no need for RBAC all users can get
 
     try {
         const FeatureID = req.session.User?.feature
 
         if (!FeatureID)
-             res.status(403).json({ error: "No feature assigned in session" })
+            res.status(403).json({ error: "No feature assigned in session" })
 
         const result = await query("SELECT * FROM Features WHERE FeatureID = @FeatureID", { FeatureID })
 
         if (!result.length)
-             res.status(404).json({ error: "Feature channel not found" })
+            res.status(404).json({ error: "Feature channel not found" })
 
         res.json({ message: `Feature channel details for ${FeatureID}`, data: result })
     } catch (err: any) {
@@ -131,14 +156,16 @@ const getFeatureChannel = async (req: Request, res: Response) => {
 }
 
 const getFeatureMembers = async (req: Request, res: Response) => {
-    if(!req.session.User)
-        res.status(401).json({error: "Unauthorized Access"})
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
+
+    // no need for RBAC all users can get
 
     try {
         const FeatureID = req.session.User?.feature
 
         if (!FeatureID)
-             res.status(403).json({ error: "No feature assigned in session" })
+            res.status(403).json({ error: "No feature assigned in session" })
 
         const result = await query(
             `SELECT u.*
@@ -156,14 +183,16 @@ const getFeatureMembers = async (req: Request, res: Response) => {
 }
 
 const getFeatureGoals = async (req: Request, res: Response) => {
-    if(!req.session.User)
-        res.status(401).json({error: "Unauthorized Access"})
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
+
+    // no need for RBAC all users can get
 
     try {
         const FeatureID = req.session.User?.feature
 
         if (!FeatureID)
-             res.status(403).json({ error: "No feature assigned in session" })
+            res.status(403).json({ error: "No feature assigned in session" })
 
         const result = await query("SELECT * FROM Goals WHERE FeatureID = @FeatureID", { FeatureID })
 
@@ -175,15 +204,26 @@ const getFeatureGoals = async (req: Request, res: Response) => {
 }
 
 const updateCommit = async (req: Request, res: Response) => {
-    if(!req.session.User)
-        res.status(401).json({error: "Unauthorized Access"})
+    if (!req.session.User)
+        res.status(401).json({ error: "Unauthorized Access" })
+
+    const role = req.session.User?.role as string
+
+    if(!role)
+        res.status(403).json({error: "No role assigned in session"})
+
+    const permissionReq = "updateCommit"
+    const hasPermRes = await hasPermission(role, permissionReq)
+
+    if(!hasPermRes)
+        res.status(403).json({error: "Insufficent Permission"})
 
     try {
         const { commitID } = req.params
         const { status, comments } = req.body
 
         if (!status)
-             res.status(400).json({ error: "Status is required for update" })
+            res.status(400).json({ error: "Status is required for update" })
 
         const result = await query(
             "UPDATE Commits SET Status = @Status, Comments = @Comments WHERE CommitID = @CommitID",
