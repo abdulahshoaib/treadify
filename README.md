@@ -6,91 +6,155 @@
    ██║   ██║  ██║███████╗██║  ██║██████╔╝██║██║        ██║
    ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═════╝ ╚═╝╚═╝        ╚═╝
 ```
-# Table of Content
 
- 1. [Key Features](#key-features)
- 2. [User Types](#user-types)
- 3. [User Permissions](#user-permissions)
-    - [Product Manager](#product-manager)
-    - [Technical Lead](#technical-lead)
-    - [Developer](#developer)
- 4. [Channels](#channels)
-    - [Procduct Channels](#product-channels)
-    - [Feature Chanels](#feature-channels)
+## Table of Contents
+1. [Key Features](#key-features)
+2. [User Roles](#user-roles)
+3. [User Permissions](#user-permissions)
+4. [Channel Structure](#channel-structure)
+5. [Workflow](#workflow)
+6. [GitHub Integration](#github-integration)
 
-# Key Features
- - **Deadlines:**         A product deadlines are set based on the deadline of features
- - **Goals:**             The progress is visually shown by goals assigned to teams
- - **Progress Reports:**  Automated progress reports through the goals system. Explain how much of certian features has been developed
- - ***Github Integration**
+## Key Features
 
-# User Types
+| Feature | Description |
+|---------|-------------|
+| **Deadlines** | Product timelines calculated from individual feature deadlines |
+| **Goals** | Visual progress tracking through team-assigned goals |
+| **Progress Reports** | Automated metrics showing feature completion status |
+| **GitHub Integration** | Seamless connection with development workflows |
+| **Hierarchical Management** | Structured team organization with clear responsibilities |
 
- ## Product Manager (PM)
- - Product managers are responsible for the delivery of a product. They are the channel owners that can create channels and add members by join code.
+## User Roles
 
- ## Technical Lead  (TL)
- - Work under the PM. Responsible for delivery of a feature assigned by the PM.
+### Product Manager (PM)
+The strategic leader who oversees product development and coordinates feature delivery. Sets vision, priorities, and deadlines.
 
- ## Developers      (Dev)
- - Work under the TL. Resposible of working on features assigned to them.
+### Technical Lead (TL)
+The hands-on leader responsible for feature implementation and team management. Bridges product requirements with technical execution.
 
-# User Permissions
+### Developer (Dev)
+The technical implementer who builds features according to specifications. Contributes code and updates progress through the goals system.
 
- ## Product Manager
+## User Permissions
 
- - Can create product channel
- - Product Manager can only have 1 channel at a time
- - Can send messages/files/photos to the product channel
- - Can mark a product as complete
- - Can depricate the product channel
+### Product Manager
+- **Channel Management**
+  - Create product channels (limited to 1 active channel)
+  - Generate join codes for team members
+  - Deprecate completed product channels
 
- - Can create/update deadline for the delivery of a feature
- - Can create goals for different features of the product & assign a feature channel to it
- - Can assign TL to feature channels
+- **Feature Organization**
+  - Create feature channels with specific deadlines
+  - Assign Technical Leads to feature channels
+  - Create goals mapped to product features
 
- - Can generate join codes
- - Can generate progress report
+- **Reporting & Communication**
+  - Generate comprehensive progress reports
+  - Send communications across the product channel
+  - Mark products as complete upon delivery
 
- ## Technical Lead
+### Technical Lead
+- **Team Management**
+  - Select developers from available resource pool
+  - Set specific goals for the feature team
+  - Review and validate developer contributions
 
- - Can send messages/files/photos to the product/feature channels
- - Can select the team of devs for the feature it was assigned
- - Can set goals for the feature team to achieve (Not dev specific)
- - Devs share their commits against goals, which the TL analyzes and either rejects or confirms
- - Goal once completed cannot be reopend
- - Progress bar increments once a goal is completed
+- **Progress Tracking**
+  - Approve or reject commits against goals
+  - Close completed goals (irreversible)
+  - Monitor feature development progress
 
- - Can add devs from the list of available devs from the product channel
+- **Communication**
+  - Send messages across both product and feature channels
+  - Coordinate between PM requirements and developer implementation
 
- ## Developer
+### Developer
+- **Implementation**
+  - Complete assigned goals within feature channels
+  - Submit work for Technical Lead review
+  - Track personal contribution progress
 
- - Can send messages/files/photos only to the feature channels
- - Can complete the goals given by the technical lead in the features group
- - Read messages from product channels; cannot send messages to the product channels
+- **Communication**
+  - Send messages within feature channels
+  - View (read-only) product channel communications
 
- ## Common User Permissions
+### Common User Permissions
+| Permission | Details |
+|------------|---------|
+| Profile Management | Upload profile pictures, update bio |
+| Account Settings | Reset password, customize display name |
+| GitHub Connection | Link development account for tracking |
+| Restrictions | Cannot change username after account creation |
 
- - Upload pictures
- - Set their view name
- - Reset their password
- - Reset their bio
- - cannot change username
- - *Link Github
+## Channel Structure
 
-# Channels
+### Product Channels
+The top-level organizational structure for project management:
 
- ## Product Channels
- - Product channels focus on building product by assigning different features to different groups
- - Need to be setup by the Product Manager. PM makes feature channels that are assigned deadlines and the one with the last deadline is the deadline of the project
- - Dynamic report can be generated on the progress of each feature that also gives an overall view of the product's progress
- - Goals are setup automatically by creating new feature channels. The Goal is named after the feature channel
- - TL for the feature channel has to be unique and not already in another active feature channel
+- **Creation & Setup**
+  - Established by Product Manager
+  - Contains multiple feature channels
+  - Overall deadline determined by latest feature deadline
 
- ## Feature Channels
- - Feature channels focus on delivering features for the product
- - TL can only add devs from the product channel that are not already in any active feature channel
- - Goals are to be created by the Technical Leads
- - Devs can contribute to any goal based on their work
- - TL can reject or accept commits registered against goals
- - Once all the goals are achieved, the feature channel is made inactive and the goal is marked as complete in the product channel
+- **Goal Management**
+  - Automatic goal creation upon feature channel setup
+  - Visual progress tracking for entire product
+  - Consolidated view of all feature development
+
+- **Membership**
+  - Product Manager as primary owner
+  - All Technical Leads and Developers as members
+  - Resource allocation tracking
+
+### Feature Channels
+Focused workspaces for specific functionality development:
+
+- **Team Composition**
+  - Led by designated Technical Lead
+  - Staffed by developers not assigned to other active channels
+  - Dedicated to specific product functionality
+
+- **Goal Tracking**
+  - Technical Lead defines implementation goals
+  - Developers register contributions against goals
+  - Progress visualization through completion metrics
+
+- **Lifecycle**
+  - Active during development phase
+  - Marked complete when all goals are achieved
+  - Success reflected in product channel metrics
+
+## Workflow
+
+1. **Product Initialization**
+   - PM creates product channel
+   - PM defines features and deadlines
+   - PM assigns Technical Leads
+
+2. **Feature Planning**
+   - TL establishes feature channel goals
+   - TL selects development team
+   - TL breaks down implementation tasks
+
+3. **Development Execution**
+   - Developers implement assigned tasks
+   - Developers submit work against goals
+   - TL reviews and validates contributions
+
+4. **Progress Tracking**
+   - Goals progressively marked complete
+   - Feature channels closed upon completion
+   - Product progress automatically calculated
+
+5. **Product Completion**
+   - All feature channels reach 100% completion
+   - PM reviews final deliverable
+   - PM marks product as complete
+
+## GitHub Integration
+
+- **Commit Tracking**: Link code submissions directly to goals
+- **Automated Updates**: Reflect development progress in real-time
+- **Code Review**: Streamline validation process for Technical Leads
+- **Documentation**: Connect product requirements with implementation
