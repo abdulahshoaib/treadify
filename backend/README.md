@@ -410,7 +410,7 @@ None required; the request is authenticated based on the session.
 **Response (201):**
 ```json
 {
-  "message": "Invite code generated successfully",
+  "message": "nvite code generated successfully",
   "inviteCode": "string (invite code)"
 }
 ```
