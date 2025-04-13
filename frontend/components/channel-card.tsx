@@ -59,7 +59,7 @@ export default function ChannelCard({ id, name, type, deadline, progress, member
       </CardContent>
       <CardFooter>
         <Link href={href} className="w-full">
-          <button className="w-full rounded-md bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 px-4 py-2 text-sm font-medium text-white transition-colors">
+          <button className="cursor-pointer w-full rounded-md bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 px-4 py-2 text-sm font-medium text-white transition-colors">
             View Channel
           </button>
         </Link>
