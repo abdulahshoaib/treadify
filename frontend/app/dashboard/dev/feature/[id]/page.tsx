@@ -1,11 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { CalendarClock, GitBranch, GitCommit, Users } from "lucide-react"
+import { CalendarClock, GitBranch, GitCommit, Github } from "lucide-react"
 import DashboardHeader from "@/components/dashboard-header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -19,8 +18,19 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 // Sample data for demonstration
+const initialFeatureChannel = {
+  id: "feat-1",
+  name: "User Authentication",
+  description: "Implement secure login and registration system",
+  deadline: "Nov 20, 2023",
+  progress: 68,
+  repo: "treadify/mobile-app",
+}
+
 const initialGoals = [
   {
     id: "goal-1",
@@ -51,12 +61,47 @@ const initialGoals = [
   },
 ]
 
+// Sample commits for the developer
+const initialCommits = [
+  {
+    id: "commit-1",
+    hash: "a1b2c3d",
+    message: "Added login form with validation",
+    timestamp: "2023-11-08T10:15:00Z",
+    submitted: true,
+    goalId: "goal-1",
+    status: "approved" as const,
+  },
+  {
+    id: "commit-2",
+    hash: "e4f5g6h",
+    message: "Implemented user authentication API endpoints",
+    timestamp: "2023-11-10T14:30:00Z",
+    submitted: true,
+    goalId: "goal-2",
+    status: "pending" as const,
+  },
+  {
+    id: "commit-3",
+    hash: "i7j8k9l",
+    message: "Added JWT token generation",
+    timestamp: "2023-11-11T09:45:00Z",
+    submitted: false,
+    goalId: null,
+    status: null,
+  },
+]
+
 export default function DevFeatureChannelPage({ params }: { params: { id: string } }) {
+  const [featureChannel, setFeatureChannel] = useState(initialFeatureChannel)
   const [goals, setGoals] = useState(initialGoals)
+  const [commits, setCommits] = useState(initialCommits)
   const [selectedGoal, setSelectedGoal] = useState<(typeof initialGoals)[0] | null>(null)
+  const [selectedCommit, setSelectedCommit] = useState<string | null>(null)
   const [updateProgress, setUpdateProgress] = useState<number>(0)
   const [commitMessage, setCommitMessage] = useState("")
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false)
+  const [isSubmitCommitDialogOpen, setIsSubmitCommitDialogOpen] = useState(false)
 
   const handleUpdateGoal = () => {
     if (!selectedGoal) return
@@ -85,171 +130,424 @@ export default function DevFeatureChannelPage({ params }: { params: { id: string
     setIsUpdateDialogOpen(true)
   }
 
+  const handleSubmitCommit = () => {
+    if (!selectedCommit || !selectedGoal) return
+
+    // Find the commit and update it
+    const updatedCommits = commits.map((commit) => {
+      if (commit.id === selectedCommit) {
+        return {
+          ...commit,
+          submitted: true,
+          goalId: selectedGoal.id,
+          status: "pending" as const,
+        }
+      }
+      return commit
+    })
+
+    setCommits(updatedCommits)
+    setSelectedCommit(null)
+    setSelectedGoal(null)
+    setIsSubmitCommitDialogOpen(false)
+  }
+
   // Filter goals assigned to the current user
   const myGoals = goals.filter((goal) => goal.isAssignedToMe)
+  const otherGoals = goals.filter((goal) => !goal.isAssignedToMe)
 
   // Calculate my progress
   const myProgress =
     myGoals.length > 0 ? Math.round(myGoals.reduce((sum, goal) => sum + goal.progress, 0) / myGoals.length) : 0
 
+  // Get unsubmitted commits
+  const unsubmittedCommits = commits.filter((commit) => !commit.submitted)
+
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-black text-white">
+      {/* Background gradient effects */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[10%] left-[15%] w-[40rem] h-[40rem] rounded-full bg-purple-600/30 blur-3xl opacity-20"></div>
+        <div className="absolute bottom-[20%] right-[10%] w-[35rem] h-[35rem] rounded-full bg-blue-600/30 blur-3xl opacity-20"></div>
+        <div className="absolute top-[60%] left-[40%] w-[30rem] h-[30rem] rounded-full bg-cyan-600/30 blur-3xl opacity-20"></div>
+        <div className="absolute top-[30%] right-[25%] w-[25rem] h-[25rem] rounded-full bg-green-600/30 blur-3xl opacity-20"></div>
+      </div>
+
       <DashboardHeader userName="Jamie Smith" userRole="Developer" />
-      <main className="flex-1 p-6">
+      <main className="relative z-10 flex-1 p-6">
         <div className="mb-8">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">User Authentication</h1>
-            <Button variant="outline">
-              <GitBranch className="mr-2 h-4 w-4" />
-              Connect GitHub
+            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-400">
+              {featureChannel.name}
+            </h1>
+            <Button
+              variant="outline"
+              className="border-slate-800 bg-slate-900/30 text-white hover:text-cyan-400 hover:border-cyan-500/50 backdrop-blur-sm"
+              onClick={() => setIsSubmitCommitDialogOpen(true)}
+              disabled={unsubmittedCommits.length === 0}
+            >
+              <GitCommit className="mr-2 h-4 w-4" />
+              Submit Work
             </Button>
           </div>
 
-          <div className="mt-6 grid gap-6 md:grid-cols-3">
-            <Card>
+          <div className="mt-8 grid gap-6 md:grid-cols-3">
+            <Card className="border-slate-800/30 bg-slate-900/30 backdrop-blur-md shadow-xl">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">My Progress</CardTitle>
+                <CardTitle className="text-sm font-medium text-white">My Progress</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-col space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span>Progress</span>
-                    <span className="font-medium">{myProgress}%</span>
+                    <span className="text-slate-400">Progress</span>
+                    <span className="font-medium text-white">{myProgress}%</span>
                   </div>
-                  <Progress value={myProgress} className="h-2" />
+                  <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-slate-800/80 p-0.5">
+                    <div
+                      className="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 shadow-[0_0_5px_rgba(0,255,255,0.5)]"
+                      style={{ width: `${myProgress}%` }}
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-slate-800/30 bg-slate-900/30 backdrop-blur-md shadow-xl">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Deadline</CardTitle>
+                <CardTitle className="text-sm font-medium text-white">GitHub Repository</CardTitle>
               </CardHeader>
-              <CardContent className="flex items-center space-x-2">
-                <CalendarClock className="h-5 w-5 text-muted-foreground" />
-                <span>November 20, 2023</span>
+              <CardContent className="flex items-center space-x-3">
+                <div className="bg-slate-800/80 p-2.5 rounded-md">
+                  <Github className="h-5 w-5 text-cyan-400" />
+                </div>
+                <span className="text-slate-300">{featureChannel.repo}</span>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-slate-800/30 bg-slate-900/30 backdrop-blur-md shadow-xl">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Team Members</CardTitle>
+                <CardTitle className="text-sm font-medium text-white">Deadline</CardTitle>
               </CardHeader>
-              <CardContent className="flex items-center space-x-2">
-                <Users className="h-5 w-5 text-muted-foreground" />
-                <span>3 developers</span>
+              <CardContent className="flex items-center space-x-3">
+                <div className="bg-slate-800/80 p-2.5 rounded-md">
+                  <CalendarClock className="h-5 w-5 text-purple-400" />
+                </div>
+                <span className="text-slate-300">{featureChannel.deadline}</span>
               </CardContent>
             </Card>
           </div>
         </div>
 
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">My Goals</h2>
-          </div>
+        <Tabs defaultValue="my-goals" className="space-y-6">
+          <TabsList className="bg-slate-900/30 backdrop-blur-sm border border-slate-800/50 p-1 h-12">
+            <TabsTrigger
+              value="my-goals"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-900/20 h-10"
+            >
+              My Goals
+            </TabsTrigger>
+            <TabsTrigger
+              value="all-goals"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-900/20 h-10"
+            >
+              All Goals
+            </TabsTrigger>
+            <TabsTrigger
+              value="my-commits"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-900/20 h-10"
+            >
+              My Commits
+            </TabsTrigger>
+          </TabsList>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {myGoals.map((goal) => (
-              <Card key={goal.id}>
-                <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <CardTitle className="text-lg">{goal.name}</CardTitle>
-                    <Badge variant={goal.status === "completed" ? "default" : "outline"}>
-                      {goal.status === "completed"
-                        ? "Completed"
-                        : goal.status === "in-progress"
-                          ? "In Progress"
-                          : "Not Started"}
-                    </Badge>
-                  </div>
-                  <CardDescription>{goal.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-6 w-6">
-                      <AvatarImage src="/placeholder.svg" alt={goal.assignee} />
-                      <AvatarFallback>{goal.assignee.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm">{goal.assignee}</span>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span>Progress</span>
-                      <span>{goal.progress}%</span>
-                    </div>
-                    <Progress value={goal.progress} className="h-2" />
-                  </div>
-                  {goal.status !== "completed" && (
-                    <Button className="w-full" onClick={() => openUpdateDialog(goal)}>
-                      Update Progress
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-            {myGoals.length === 0 && (
-              <div className="col-span-full flex h-40 items-center justify-center rounded-lg border border-dashed">
-                <p className="text-sm text-muted-foreground">No goals assigned to you</p>
+          <TabsContent value="my-goals">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-white">My Goals</h2>
               </div>
-            )}
-          </div>
-        </div>
 
-        <div className="mt-10 space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">All Goals</h2>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {goals
-              .filter((goal) => !goal.isAssignedToMe)
-              .map((goal) => (
-                <Card key={goal.id}>
-                  <CardHeader>
-                    <div className="flex justify-between items-center">
-                      <CardTitle className="text-lg">{goal.name}</CardTitle>
-                      <Badge variant={goal.status === "completed" ? "default" : "outline"}>
-                        {goal.status === "completed"
-                          ? "Completed"
-                          : goal.status === "in-progress"
-                            ? "In Progress"
-                            : "Not Started"}
-                      </Badge>
-                    </div>
-                    <CardDescription>{goal.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-6 w-6">
-                        <AvatarImage src="/placeholder.svg" alt={goal.assignee} />
-                        <AvatarFallback>{goal.assignee.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm">{goal.assignee}</span>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span>Progress</span>
-                        <span>{goal.progress}%</span>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {myGoals.map((goal) => (
+                  <Card
+                    key={goal.id}
+                    className="border-slate-800/30 bg-slate-900/30 backdrop-blur-md shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-slate-700/50 group"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/10 via-slate-900/0 to-purple-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <CardHeader>
+                      <div className="flex justify-between items-center">
+                        <CardTitle className="text-lg text-white">{goal.name}</CardTitle>
+                        <Badge
+                          variant={goal.status === "completed" ? "default" : "outline"}
+                          className={
+                            goal.status === "completed"
+                              ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white border-0 shadow-sm shadow-green-900/20"
+                              : "border-slate-700 text-slate-300"
+                          }
+                        >
+                          {goal.status === "completed"
+                            ? "Completed"
+                            : goal.status === "in-progress"
+                              ? "In Progress"
+                              : "Not Started"}
+                        </Badge>
                       </div>
-                      <Progress value={goal.progress} className="h-2" />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-          </div>
-        </div>
+                      <CardDescription className="text-slate-400">{goal.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <div className="rounded-full bg-gradient-to-br from-cyan-600 to-blue-600 p-0.5">
+                          <Avatar className="h-6 w-6 border border-black">
+                            <AvatarImage src="/placeholder.svg" alt={goal.assignee} />
+                            <AvatarFallback className="bg-slate-800 text-white text-xs">
+                              {goal.assignee.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                        </div>
+                        <span className="text-sm text-slate-300">{goal.assignee}</span>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-slate-400">Progress</span>
+                          <span className="text-white">{goal.progress}%</span>
+                        </div>
+                        <div className="relative h-2 w-full overflow-hidden rounded-full bg-slate-800/80 p-0.5">
+                          <div
+                            className="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 shadow-[0_0_5px_rgba(0,255,255,0.5)]"
+                            style={{ width: `${goal.progress}%` }}
+                          />
+                        </div>
+                      </div>
+                      {goal.status !== "completed" && (
+                        <Button
+                          className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white border-0 shadow-lg shadow-blue-900/20"
+                          onClick={() => openUpdateDialog(goal)}
+                        >
+                          Update Progress
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+                {myGoals.length === 0 && (
+                  <div className="col-span-full flex h-40 items-center justify-center rounded-lg border border-dashed border-slate-800/50 bg-slate-900/20 backdrop-blur-sm">
+                    <p className="text-sm text-slate-400">No goals assigned to you</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </TabsContent>
 
+          <TabsContent value="all-goals">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-white">All Goals</h2>
+              </div>
+
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {otherGoals.map((goal) => (
+                  <Card
+                    key={goal.id}
+                    className="border-slate-800/30 bg-slate-900/30 backdrop-blur-md shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-slate-700/50 group"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/10 via-slate-900/0 to-purple-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <CardHeader>
+                      <div className="flex justify-between items-center">
+                        <CardTitle className="text-lg text-white">{goal.name}</CardTitle>
+                        <Badge
+                          variant={goal.status === "completed" ? "default" : "outline"}
+                          className={
+                            goal.status === "completed"
+                              ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white border-0 shadow-sm shadow-green-900/20"
+                              : "border-slate-700 text-slate-300"
+                          }
+                        >
+                          {goal.status === "completed"
+                            ? "Completed"
+                            : goal.status === "in-progress"
+                              ? "In Progress"
+                              : "Not Started"}
+                        </Badge>
+                      </div>
+                      <CardDescription className="text-slate-400">{goal.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <div className="rounded-full bg-gradient-to-br from-cyan-600 to-blue-600 p-0.5">
+                          <Avatar className="h-6 w-6 border border-black">
+                            <AvatarImage src="/placeholder.svg" alt={goal.assignee} />
+                            <AvatarFallback className="bg-slate-800 text-white text-xs">
+                              {goal.assignee.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                        </div>
+                        <span className="text-sm text-slate-300">{goal.assignee}</span>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-slate-400">Progress</span>
+                          <span className="text-white">{goal.progress}%</span>
+                        </div>
+                        <div className="relative h-2 w-full overflow-hidden rounded-full bg-slate-800/80 p-0.5">
+                          <div
+                            className="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 shadow-[0_0_5px_rgba(0,255,255,0.5)]"
+                            style={{ width: `${goal.progress}%` }}
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="my-commits">
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-white">My Commits</h2>
+
+              <div className="space-y-6">
+                <h3 className="text-lg font-medium text-white">Unsubmitted Commits</h3>
+                {unsubmittedCommits.length === 0 ? (
+                  <div className="flex h-40 items-center justify-center rounded-lg border border-dashed border-slate-800/50 bg-slate-900/20 backdrop-blur-sm">
+                    <p className="text-sm text-slate-400">No unsubmitted commits</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {unsubmittedCommits.map((commit) => (
+                      <Card key={commit.id} className="border-slate-800/30 bg-slate-900/30 backdrop-blur-md shadow-xl">
+                        <CardHeader className="pb-2">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <CardTitle className="text-white flex items-center gap-2">
+                                <div className="bg-slate-800/80 p-1.5 rounded-md">
+                                  <GitBranch className="h-4 w-4 text-cyan-400" />
+                                </div>
+                                <span>{commit.hash.substring(0, 7)}</span>
+                              </CardTitle>
+                              <CardDescription className="text-slate-400 mt-1">
+                                {new Date(commit.timestamp).toLocaleString()}
+                              </CardDescription>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-3">
+                            <div className="bg-slate-900/50 p-3 rounded-md border border-slate-800/50">
+                              <p className="text-white">{commit.message}</p>
+                            </div>
+                            <Button
+                              className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white border-0 shadow-lg shadow-blue-900/20"
+                              onClick={() => {
+                                setSelectedCommit(commit.id)
+                                setIsSubmitCommitDialogOpen(true)
+                              }}
+                            >
+                              <GitCommit className="mr-2 h-4 w-4" />
+                              Submit for Goal
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+
+                <h3 className="text-lg font-medium text-white mt-8">Submitted Commits</h3>
+                {commits.filter((c) => c.submitted).length === 0 ? (
+                  <div className="flex h-40 items-center justify-center rounded-lg border border-dashed border-slate-800/50 bg-slate-900/20 backdrop-blur-sm">
+                    <p className="text-sm text-slate-400">No submitted commits</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {commits
+                      .filter((c) => c.submitted)
+                      .map((commit) => {
+                        const relatedGoal = goals.find((g) => g.id === commit.goalId)
+                        return (
+                          <Card
+                            key={commit.id}
+                            className="border-slate-800/30 bg-slate-900/30 backdrop-blur-md shadow-xl"
+                          >
+                            <CardHeader className="pb-2">
+                              <div className="flex justify-between items-center">
+                                <div>
+                                  <CardTitle className="text-white flex items-center gap-2">
+                                    <div className="bg-slate-800/80 p-1.5 rounded-md">
+                                      <GitBranch className="h-4 w-4 text-cyan-400" />
+                                    </div>
+                                    <span>{commit.hash.substring(0, 7)}</span>
+                                  </CardTitle>
+                                  <CardDescription className="text-slate-400 mt-1">
+                                    {new Date(commit.timestamp).toLocaleString()}
+                                  </CardDescription>
+                                </div>
+                                {commit.status && (
+                                  <Badge
+                                    className={
+                                      commit.status === "approved"
+                                        ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white border-0"
+                                        : commit.status === "rejected"
+                                          ? "bg-gradient-to-r from-red-500 to-rose-600 text-white border-0"
+                                          : "bg-gradient-to-r from-amber-500 to-orange-600 text-white border-0"
+                                    }
+                                  >
+                                    {commit.status === "approved"
+                                      ? "Approved"
+                                      : commit.status === "rejected"
+                                        ? "Rejected"
+                                        : "Pending"}
+                                  </Badge>
+                                )}
+                              </div>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-3">
+                                <div className="bg-slate-900/50 p-3 rounded-md border border-slate-800/50">
+                                  <p className="text-white">{commit.message}</p>
+                                </div>
+                                {relatedGoal && (
+                                  <div className="flex items-center gap-2 mt-2">
+                                    <span className="text-sm text-slate-400">Goal:</span>
+                                    <Badge variant="outline" className="border-slate-700 text-slate-300">
+                                      {relatedGoal.name}
+                                    </Badge>
+                                  </div>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )
+                      })}
+                  </div>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {/* Update Goal Dialog */}
         <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
-          <DialogContent>
+          <DialogContent className="border-slate-800/50 bg-black/90 backdrop-blur-xl text-white shadow-xl shadow-purple-900/10">
             <DialogHeader>
-              <DialogTitle>Update Goal Progress</DialogTitle>
-              <DialogDescription>Update your progress on this goal and add a commit message.</DialogDescription>
+              <DialogTitle className="text-xl text-white">Update Goal Progress</DialogTitle>
+              <DialogDescription className="text-slate-400">
+                Update your progress on this goal and add a commit message.
+              </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="goal-name">Goal</Label>
-                <Input id="goal-name" value={selectedGoal?.name || ""} disabled />
+                <Label htmlFor="goal-name" className="text-slate-300">
+                  Goal
+                </Label>
+                <Input
+                  id="goal-name"
+                  value={selectedGoal?.name || ""}
+                  disabled
+                  className="border-slate-800/50 bg-slate-900/50 text-slate-400"
+                />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="progress">Progress (%)</Label>
+                <Label htmlFor="progress" className="text-slate-300">
+                  Progress (%)
+                </Label>
                 <Input
                   id="progress"
                   type="number"
@@ -257,25 +555,99 @@ export default function DevFeatureChannelPage({ params }: { params: { id: string
                   max="100"
                   value={updateProgress}
                   onChange={(e) => setUpdateProgress(Number.parseInt(e.target.value) || 0)}
+                  className="border-slate-800/50 bg-slate-900/50 text-white focus:border-cyan-500 focus:ring-cyan-500"
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="commit-message">Commit Message</Label>
+                <Label htmlFor="commit-message" className="text-slate-300">
+                  Commit Message
+                </Label>
                 <Textarea
                   id="commit-message"
                   value={commitMessage}
                   onChange={(e) => setCommitMessage(e.target.value)}
                   placeholder="Describe what you've accomplished"
+                  className="border-slate-800/50 bg-slate-900/50 text-white focus:border-cyan-500 focus:ring-cyan-500"
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsUpdateDialogOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setIsUpdateDialogOpen(false)}
+                className="border-slate-800 bg-transparent text-white hover:text-cyan-400 hover:border-cyan-400"
+              >
                 Cancel
               </Button>
-              <Button onClick={handleUpdateGoal} className="gap-2">
+              <Button
+                onClick={handleUpdateGoal}
+                className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white border-0 gap-2"
+              >
                 <GitCommit className="h-4 w-4" />
                 Submit Update
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Submit Commit Dialog */}
+        <Dialog open={isSubmitCommitDialogOpen} onOpenChange={setIsSubmitCommitDialogOpen}>
+          <DialogContent className="border-slate-800/50 bg-black/90 backdrop-blur-xl text-white shadow-xl shadow-purple-900/10">
+            <DialogHeader>
+              <DialogTitle className="text-xl text-white">Submit Commit for Goal</DialogTitle>
+              <DialogDescription className="text-slate-400">
+                Select a goal to submit this commit for review.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              {selectedCommit && (
+                <div className="bg-slate-900/50 p-3 rounded-md border border-slate-800/50">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="bg-slate-800/80 p-1.5 rounded-md">
+                      <GitBranch className="h-4 w-4 text-cyan-400" />
+                    </div>
+                    <span className="text-white font-medium">
+                      {commits.find((c) => c.id === selectedCommit)?.hash.substring(0, 7)}
+                    </span>
+                  </div>
+                  <p className="text-white">{commits.find((c) => c.id === selectedCommit)?.message}</p>
+                </div>
+              )}
+              <div className="grid gap-2">
+                <Label htmlFor="goal" className="text-slate-300">
+                  Select Goal
+                </Label>
+                <Select onValueChange={(value) => setSelectedGoal(goals.find((g) => g.id === value) || null)}>
+                  <SelectTrigger className="border-slate-800/50 bg-slate-900/50 text-white focus:border-cyan-500 focus:ring-cyan-500">
+                    <SelectValue placeholder="Select a goal" />
+                  </SelectTrigger>
+                  <SelectContent className="border-slate-800 bg-black/90 backdrop-blur-xl text-white">
+                    {myGoals
+                      .filter((g) => g.status !== "completed")
+                      .map((goal) => (
+                        <SelectItem key={goal.id} value={goal.id} className="focus:bg-slate-800 focus:text-cyan-400">
+                          {goal.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsSubmitCommitDialogOpen(false)}
+                className="border-slate-800 bg-transparent text-white hover:text-cyan-400 hover:border-cyan-400"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSubmitCommit}
+                disabled={!selectedGoal || !selectedCommit}
+                className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white border-0 gap-2"
+              >
+                <GitCommit className="h-4 w-4" />
+                Submit for Review
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -284,3 +656,4 @@ export default function DevFeatureChannelPage({ params }: { params: { id: string
     </div>
   )
 }
+
