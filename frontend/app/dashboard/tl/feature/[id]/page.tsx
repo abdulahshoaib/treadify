@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { GitBranch, Plus, Users, Check, X, Github } from "lucide-react"
+import { GitBranch, Plus, Users, Check, X, Github, ExternalLink } from "lucide-react"
 import DashboardHeader from "@/components/dashboard-header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -20,6 +20,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Checkbox } from "@/components/ui/checkbox"
 
 // Sample data for demonstration
 const initialFeatureChannel = {
@@ -39,7 +40,7 @@ const initialGoals = [
     description: "Create a responsive login form with validation",
     progress: 100,
     status: "completed" as const,
-    assignee: "Alex Johnson",
+    deadline: "2023-11-15",
   },
   {
     id: "goal-2",
@@ -47,7 +48,7 @@ const initialGoals = [
     description: "Implement backend API endpoints for authentication",
     progress: 75,
     status: "in-progress" as const,
-    assignee: "Jamie Smith",
+    deadline: "2023-11-20",
   },
   {
     id: "goal-3",
@@ -55,12 +56,12 @@ const initialGoals = [
     description: "Create password reset flow with email verification",
     progress: 30,
     status: "in-progress" as const,
-    assignee: "Taylor Wilson",
+    deadline: "2023-11-25",
   },
 ]
 
-// Sample developers for assignment
-const developers = [
+// Sample developers in the product channel
+const productChannelMembers = [
   { id: "dev-1", name: "Alex Johnson" },
   { id: "dev-2", name: "Jamie Smith" },
   { id: "dev-3", name: "Taylor Wilson" },
@@ -77,6 +78,8 @@ const initialCommits = [
     hash: "a1b2c3d",
     timestamp: "2023-11-10T14:30:00Z",
     status: "pending" as const,
+    gitBlameUrl: "https://github.com/treadify/mobile-app/blame/a1b2c3d",
+    comment: "",
   },
   {
     id: "commit-2",
@@ -86,6 +89,8 @@ const initialCommits = [
     hash: "e4f5g6h",
     timestamp: "2023-11-09T16:45:00Z",
     status: "pending" as const,
+    gitBlameUrl: "https://github.com/treadify/mobile-app/blame/e4f5g6h",
+    comment: "",
   },
 ]
 
@@ -95,46 +100,72 @@ export default function FeatureChannelPage({ params }: { params: { id: string } 
   const [commits, setCommits] = useState(initialCommits)
   const [newGoalName, setNewGoalName] = useState("")
   const [newGoalDescription, setNewGoalDescription] = useState("")
-  const [selectedDeveloper, setSelectedDeveloper] = useState("")
+  const [newGoalDeadline, setNewGoalDeadline] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isAddMemberDialogOpen, setIsAddMemberDialogOpen] = useState(false)
-  const [newMemberEmail, setNewMemberEmail] = useState("")
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([])
+  const [selectedCommit, setSelectedCommit] = useState<string | null>(null)
+  const [commitComment, setCommitComment] = useState("")
+  const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false)
+  const [isEditGoalDialogOpen, setIsEditGoalDialogOpen] = useState(false)
+  const [editingGoal, setEditingGoal] = useState<(typeof initialGoals)[0] | null>(null)
 
   const handleCreateGoal = () => {
-    const selectedDev = developers.find((dev) => dev.id === selectedDeveloper)
-
     const newGoal = {
       id: `goal-${goals.length + 1}`,
       name: newGoalName,
       description: newGoalDescription,
       progress: 0,
       status: "not-started" as const,
-      assignee: selectedDev ? selectedDev.name : "Unassigned",
+      deadline: newGoalDeadline,
     }
 
     setGoals([...goals, newGoal])
     setNewGoalName("")
     setNewGoalDescription("")
-    setSelectedDeveloper("")
+    setNewGoalDeadline("")
     setIsDialogOpen(false)
   }
 
-  const handleAddMember = () => {
-    // In a real app, this would send an invitation to the email
-    setNewMemberEmail("")
+  const handleEditGoal = () => {
+    if (!editingGoal) return
+
+    const updatedGoals = goals.map((goal) => {
+      if (goal.id === editingGoal.id) {
+        return {
+          ...editingGoal,
+        }
+      }
+      return goal
+    })
+
+    setGoals(updatedGoals)
+    setEditingGoal(null)
+    setIsEditGoalDialogOpen(false)
+  }
+
+  const handleAddMembers = () => {
+    // In a real app, this would add the selected members to the feature channel
+    setSelectedMembers([])
     setIsAddMemberDialogOpen(false)
   }
 
-  const handleApproveCommit = (commitId: string) => {
+  const handleApproveCommit = () => {
+    if (!selectedCommit) return
+
     const updatedCommits = commits.map((commit) => {
-      if (commit.id === commitId) {
-        return { ...commit, status: "approved" as const }
+      if (commit.id === selectedCommit) {
+        return {
+          ...commit,
+          status: "approved" as const,
+          comment: commitComment,
+        }
       }
       return commit
     })
 
     // Update the related goal progress
-    const commit = commits.find((c) => c.id === commitId)
+    const commit = commits.find((c) => c.id === selectedCommit)
     if (commit) {
       const updatedGoals = goals.map((goal) => {
         if (goal.id === commit.goalId) {
@@ -146,16 +177,29 @@ export default function FeatureChannelPage({ params }: { params: { id: string } 
     }
 
     setCommits(updatedCommits)
+    setSelectedCommit(null)
+    setCommitComment("")
+    setIsReviewDialogOpen(false)
   }
 
-  const handleRejectCommit = (commitId: string) => {
+  const handleRejectCommit = () => {
+    if (!selectedCommit) return
+
     const updatedCommits = commits.map((commit) => {
-      if (commit.id === commitId) {
-        return { ...commit, status: "rejected" as const }
+      if (commit.id === selectedCommit) {
+        return {
+          ...commit,
+          status: "rejected" as const,
+          comment: commitComment,
+        }
       }
       return commit
     })
+
     setCommits(updatedCommits)
+    setSelectedCommit(null)
+    setCommitComment("")
+    setIsReviewDialogOpen(false)
   }
 
   // Calculate overall progress
@@ -190,7 +234,7 @@ export default function FeatureChannelPage({ params }: { params: { id: string } 
                 onClick={() => setIsAddMemberDialogOpen(true)}
               >
                 <Users className="mr-2 h-4 w-4" />
-                Add Member
+                Add Members
               </Button>
             </div>
           </div>
@@ -273,9 +317,7 @@ export default function FeatureChannelPage({ params }: { params: { id: string } 
                   <DialogContent className="border-slate-800/50 bg-black/90 backdrop-blur-xl text-white shadow-xl shadow-purple-900/10">
                     <DialogHeader>
                       <DialogTitle className="text-xl text-white">Create New Goal</DialogTitle>
-                      <DialogDescription className="text-slate-400">
-                        Add a new goal and assign a developer.
-                      </DialogDescription>
+                      <DialogDescription className="text-slate-400">Add a new goal for this feature.</DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                       <div className="grid gap-2">
@@ -303,22 +345,16 @@ export default function FeatureChannelPage({ params }: { params: { id: string } 
                         />
                       </div>
                       <div className="grid gap-2">
-                        <Label htmlFor="developer" className="text-slate-300">
-                          Assign Developer
+                        <Label htmlFor="goal-deadline" className="text-slate-300">
+                          Deadline
                         </Label>
-                        <select
-                          id="developer"
-                          value={selectedDeveloper}
-                          onChange={(e) => setSelectedDeveloper(e.target.value)}
-                          className="flex h-10 w-full rounded-md border border-slate-800 bg-slate-900/50 px-3 py-2 text-sm text-white ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          <option value="">Select a developer</option>
-                          {developers.map((dev) => (
-                            <option key={dev.id} value={dev.id}>
-                              {dev.name}
-                            </option>
-                          ))}
-                        </select>
+                        <Input
+                          id="goal-deadline"
+                          type="date"
+                          value={newGoalDeadline}
+                          onChange={(e) => setNewGoalDeadline(e.target.value)}
+                          className="border-slate-800/50 bg-slate-900/50 text-white focus:border-cyan-500 focus:ring-cyan-500"
+                        />
                       </div>
                     </div>
                     <DialogFooter>
@@ -368,16 +404,8 @@ export default function FeatureChannelPage({ params }: { params: { id: string } 
                       <CardDescription className="text-slate-400">{goal.description}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <div className="rounded-full bg-gradient-to-br from-cyan-600 to-blue-600 p-0.5">
-                          <Avatar className="h-6 w-6 border border-black">
-                            <AvatarImage src="/placeholder.svg" alt={goal.assignee} />
-                            <AvatarFallback className="bg-slate-800 text-white text-xs">
-                              {goal.assignee.charAt(0)}
-                            </AvatarFallback>
-                          </Avatar>
-                        </div>
-                        <span className="text-sm text-slate-300">{goal.assignee}</span>
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="text-slate-400">Deadline: {goal.deadline}</div>
                       </div>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between text-sm">
@@ -391,23 +419,17 @@ export default function FeatureChannelPage({ params }: { params: { id: string } 
                           />
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          className="flex-1 border-slate-800 bg-slate-900/30 text-white hover:text-cyan-400 hover:border-cyan-500/50 backdrop-blur-sm"
-                          size="sm"
-                        >
-                          Edit
-                        </Button>
-                        {goal.status !== "completed" && (
-                          <Button
-                            className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white border-0 shadow-lg shadow-blue-900/20"
-                            size="sm"
-                          >
-                            {goal.progress === 100 ? "Complete" : "Update"}
-                          </Button>
-                        )}
-                      </div>
+                      <Button
+                        variant="outline"
+                        className="w-full border-slate-800 bg-slate-900/30 text-white hover:text-cyan-400 hover:border-cyan-500/50 backdrop-blur-sm"
+                        size="sm"
+                        onClick={() => {
+                          setEditingGoal(goal)
+                          setIsEditGoalDialogOpen(true)
+                        }}
+                      >
+                        Edit Goal
+                      </Button>
                     </CardContent>
                   </Card>
                 ))}
@@ -442,6 +464,15 @@ export default function FeatureChannelPage({ params }: { params: { id: string } 
                                     <GitBranch className="h-4 w-4 text-cyan-400" />
                                   </div>
                                   <span>{commit.hash.substring(0, 7)}</span>
+                                  <a
+                                    href={commit.gitBlameUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 text-sm font-normal"
+                                  >
+                                    <ExternalLink className="h-3 w-3" />
+                                    View on GitHub
+                                  </a>
                                 </CardTitle>
                                 <CardDescription className="text-slate-400 mt-1">
                                   {new Date(commit.timestamp).toLocaleString()}
@@ -451,19 +482,13 @@ export default function FeatureChannelPage({ params }: { params: { id: string } 
                                 <Button
                                   size="sm"
                                   className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white border-0 shadow-sm shadow-green-900/20"
-                                  onClick={() => handleApproveCommit(commit.id)}
+                                  onClick={() => {
+                                    setSelectedCommit(commit.id)
+                                    setIsReviewDialogOpen(true)
+                                  }}
                                 >
                                   <Check className="h-4 w-4 mr-1" />
-                                  Approve
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="border-red-800/50 text-red-400 hover:text-red-300 hover:border-red-700"
-                                  onClick={() => handleRejectCommit(commit.id)}
-                                >
-                                  <X className="h-4 w-4 mr-1" />
-                                  Reject
+                                  Review
                                 </Button>
                               </div>
                             </div>
@@ -525,6 +550,15 @@ export default function FeatureChannelPage({ params }: { params: { id: string } 
                                     <GitBranch className="h-4 w-4 text-cyan-400" />
                                   </div>
                                   <span>{commit.hash.substring(0, 7)}</span>
+                                  <a
+                                    href={commit.gitBlameUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 text-sm font-normal"
+                                  >
+                                    <ExternalLink className="h-3 w-3" />
+                                    View on GitHub
+                                  </a>
                                 </CardTitle>
                                 <CardDescription className="text-slate-400 mt-1">
                                   {new Date(commit.timestamp).toLocaleString()}
@@ -565,6 +599,12 @@ export default function FeatureChannelPage({ params }: { params: { id: string } 
                                   </Badge>
                                 </div>
                               )}
+                              {commit.comment && (
+                                <div className="mt-3 bg-slate-800/50 p-3 rounded-md border border-slate-700/50">
+                                  <p className="text-sm text-slate-300 mb-1">Comment from TL:</p>
+                                  <p className="text-white">{commit.comment}</p>
+                                </div>
+                              )}
                             </div>
                           </CardContent>
                         </Card>
@@ -580,24 +620,43 @@ export default function FeatureChannelPage({ params }: { params: { id: string } 
         <Dialog open={isAddMemberDialogOpen} onOpenChange={setIsAddMemberDialogOpen}>
           <DialogContent className="border-slate-800/50 bg-black/90 backdrop-blur-xl text-white shadow-xl shadow-purple-900/10">
             <DialogHeader>
-              <DialogTitle className="text-xl text-white">Add Team Member</DialogTitle>
+              <DialogTitle className="text-xl text-white">Add Team Members</DialogTitle>
               <DialogDescription className="text-slate-400">
-                Invite a developer to join this feature channel.
+                Select developers from the product channel to add to this feature.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="member-email" className="text-slate-300">
-                  Developer Email
-                </Label>
-                <Input
-                  id="member-email"
-                  type="email"
-                  value={newMemberEmail}
-                  onChange={(e) => setNewMemberEmail(e.target.value)}
-                  placeholder="developer@example.com"
-                  className="border-slate-800/50 bg-slate-900/50 text-white focus:border-cyan-500 focus:ring-cyan-500"
-                />
+            <div className="py-4">
+              <div className="space-y-4">
+                {productChannelMembers.map((member) => (
+                  <div key={member.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={member.id}
+                      checked={selectedMembers.includes(member.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedMembers([...selectedMembers, member.id])
+                        } else {
+                          setSelectedMembers(selectedMembers.filter((id) => id !== member.id))
+                        }
+                      }}
+                      className="border-slate-700 data-[state=checked]:bg-cyan-500 data-[state=checked]:border-cyan-500"
+                    />
+                    <label
+                      htmlFor={member.id}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
+                    >
+                      <div className="rounded-full bg-gradient-to-br from-cyan-600 to-blue-600 p-0.5">
+                        <Avatar className="h-6 w-6 border border-black">
+                          <AvatarImage src="/placeholder.svg" alt={member.name} />
+                          <AvatarFallback className="bg-slate-800 text-white text-xs">
+                            {member.name.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                      </div>
+                      {member.name}
+                    </label>
+                  </div>
+                ))}
               </div>
             </div>
             <DialogFooter>
@@ -609,10 +668,156 @@ export default function FeatureChannelPage({ params }: { params: { id: string } 
                 Cancel
               </Button>
               <Button
-                onClick={handleAddMember}
+                onClick={handleAddMembers}
                 className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white border-0"
               >
-                Send Invitation
+                Add Selected Members
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Goal Dialog */}
+        <Dialog open={isEditGoalDialogOpen} onOpenChange={setIsEditGoalDialogOpen}>
+          <DialogContent className="border-slate-800/50 bg-black/90 backdrop-blur-xl text-white shadow-xl shadow-purple-900/10">
+            <DialogHeader>
+              <DialogTitle className="text-xl text-white">Edit Goal</DialogTitle>
+              <DialogDescription className="text-slate-400">Update the goal details.</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-goal-name" className="text-slate-300">
+                  Goal Name
+                </Label>
+                <Input
+                  id="edit-goal-name"
+                  value={editingGoal?.name || ""}
+                  onChange={(e) => setEditingGoal(editingGoal ? { ...editingGoal, name: e.target.value } : null)}
+                  placeholder="Enter goal name"
+                  className="border-slate-800/50 bg-slate-900/50 text-white focus:border-cyan-500 focus:ring-cyan-500"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-goal-description" className="text-slate-300">
+                  Description
+                </Label>
+                <Textarea
+                  id="edit-goal-description"
+                  value={editingGoal?.description || ""}
+                  onChange={(e) => setEditingGoal(editingGoal ? { ...editingGoal, description: e.target.value } : null)}
+                  placeholder="Describe the goal"
+                  className="border-slate-800/50 bg-slate-900/50 text-white focus:border-cyan-500 focus:ring-cyan-500"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-goal-deadline" className="text-slate-300">
+                  Deadline
+                </Label>
+                <Input
+                  id="edit-goal-deadline"
+                  type="date"
+                  value={editingGoal?.deadline || ""}
+                  onChange={(e) => setEditingGoal(editingGoal ? { ...editingGoal, deadline: e.target.value } : null)}
+                  className="border-slate-800/50 bg-slate-900/50 text-white focus:border-cyan-500 focus:ring-cyan-500"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsEditGoalDialogOpen(false)}
+                className="border-slate-800 bg-transparent text-white hover:text-cyan-400 hover:border-cyan-400"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleEditGoal}
+                className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white border-0"
+              >
+                Save Changes
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Review Commit Dialog */}
+        <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
+          <DialogContent className="border-slate-800/50 bg-black/90 backdrop-blur-xl text-white shadow-xl shadow-purple-900/10">
+            <DialogHeader>
+              <DialogTitle className="text-xl text-white">Review Commit</DialogTitle>
+              <DialogDescription className="text-slate-400">
+                Review and approve or reject this commit.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              {selectedCommit && (
+                <>
+                  <div className="bg-slate-900/50 p-3 rounded-md border border-slate-800/50 mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="bg-slate-800/80 p-1.5 rounded-md">
+                        <GitBranch className="h-4 w-4 text-cyan-400" />
+                      </div>
+                      <span className="text-white font-medium">
+                        {commits.find((c) => c.id === selectedCommit)?.hash.substring(0, 7)}
+                      </span>
+                      <a
+                        href={commits.find((c) => c.id === selectedCommit)?.gitBlameUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 text-sm"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        View on GitHub
+                      </a>
+                    </div>
+                    <p className="text-white">{commits.find((c) => c.id === selectedCommit)?.message}</p>
+                    <div className="flex items-center gap-2 mt-3">
+                      <div className="rounded-full bg-gradient-to-br from-cyan-600 to-blue-600 p-0.5">
+                        <Avatar className="h-6 w-6 border border-black">
+                          <AvatarImage
+                            src="/placeholder.svg"
+                            alt={commits.find((c) => c.id === selectedCommit)?.developer}
+                          />
+                          <AvatarFallback className="bg-slate-800 text-white text-xs">
+                            {commits.find((c) => c.id === selectedCommit)?.developer.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                      </div>
+                      <span className="text-sm text-slate-300">
+                        {commits.find((c) => c.id === selectedCommit)?.developer}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="grid gap-2 mb-4">
+                    <Label htmlFor="commit-comment" className="text-slate-300">
+                      Comment (optional)
+                    </Label>
+                    <Textarea
+                      id="commit-comment"
+                      value={commitComment}
+                      onChange={(e) => setCommitComment(e.target.value)}
+                      placeholder="Add a comment about this commit"
+                      className="border-slate-800/50 bg-slate-900/50 text-white focus:border-cyan-500 focus:ring-cyan-500"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+            <DialogFooter className="flex justify-between">
+              <Button
+                variant="outline"
+                onClick={handleRejectCommit}
+                className="border-red-800/50 bg-transparent text-red-400 hover:text-red-300 hover:border-red-700"
+              >
+                <X className="h-4 w-4 mr-1" />
+                Reject
+              </Button>
+              <Button
+                onClick={handleApproveCommit}
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white border-0"
+              >
+                <Check className="h-4 w-4 mr-1" />
+                Approve
               </Button>
             </DialogFooter>
           </DialogContent>
