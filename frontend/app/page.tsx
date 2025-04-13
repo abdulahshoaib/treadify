@@ -7,14 +7,11 @@ export default function LandingPage() {
     <div className="flex flex-col min-h-screen">
       <header className="px-4 lg:px-6 h-16 flex items-center border-b">
         <Link href="/" className="flex items-center justify-center">
-          <span className="font-bold text-xl">Treasury</span>
+          <span className="font-bold text-xl">treadify</span>
         </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6">
           <Link href="/features" className="text-sm font-medium hover:underline underline-offset-4">
             Features
-          </Link>
-          <Link href="/pricing" className="text-sm font-medium hover:underline underline-offset-4">
-            Pricing
           </Link>
           <Link href="/about" className="text-sm font-medium hover:underline underline-offset-4">
             About
@@ -41,7 +38,7 @@ export default function LandingPage() {
                     Streamline Your Product Development
                   </h1>
                   <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                    Treasury helps teams collaborate effectively with structured channels, clear goals, and seamless
+                    treadify helps teams collaborate effectively with structured channels, clear goals, and seamless
                     GitHub integration.
                   </p>
                 </div>
@@ -94,7 +91,7 @@ export default function LandingPage() {
               <div className="space-y-2">
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Role-Based Collaboration</h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Treasury provides tailored experiences for each team member based on their role in the product
+                  treadify provides tailored experiences for each team member based on their role in the product
                   development process.
                 </p>
               </div>
@@ -139,7 +136,7 @@ export default function LandingPage() {
       </main>
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
         <p className="text-xs text-muted-foreground">
-          &copy; {new Date().getFullYear()} Treasury. All rights reserved.
+          &copy; {new Date().getFullYear()} treadify. All rights reserved.
         </p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
           <Link href="/terms" className="text-xs hover:underline underline-offset-4">
