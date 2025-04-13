@@ -77,7 +77,7 @@ const initialCommits = [
     message: "Implemented user authentication API endpoints",
     hash: "a1b2c3d",
     timestamp: "2023-11-10T14:30:00Z",
-    status: "pending" as const,
+    status: "pending" as "pending" | "approved" | "rejected",
     gitBlameUrl: "https://github.com/treadify/mobile-app/blame/a1b2c3d",
     comment: "",
   },
@@ -88,15 +88,27 @@ const initialCommits = [
     message: "Added password reset email template",
     hash: "e4f5g6h",
     timestamp: "2023-11-09T16:45:00Z",
-    status: "pending" as const,
+    status: "pending" as "pending" | "approved" | "rejected",
     gitBlameUrl: "https://github.com/treadify/mobile-app/blame/e4f5g6h",
     comment: "",
   },
 ]
 
-export default function FeatureChannelPage({ params }: { params: { id: string } }) {
-  const [featureChannel, setFeatureChannel] = useState(initialFeatureChannel)
-  const [goals, setGoals] = useState(initialGoals)
+type GoalStatus = "not-started" | "in-progress" | "completed"
+
+type Goal = {
+  id: string
+  name: string
+  description: string
+  progress: number
+  status: GoalStatus
+  deadline: string
+}
+
+export default function FeatureChannelPage() {
+  const [featureChannel] = useState(initialFeatureChannel)
+  const [goals, setGoals] = useState<Goal[]>(initialGoals)
+  const [editingGoal, setEditingGoal] = useState<(Goal | null)>(null)
   const [commits, setCommits] = useState(initialCommits)
   const [newGoalName, setNewGoalName] = useState("")
   const [newGoalDescription, setNewGoalDescription] = useState("")
@@ -108,7 +120,6 @@ export default function FeatureChannelPage({ params }: { params: { id: string } 
   const [commitComment, setCommitComment] = useState("")
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false)
   const [isEditGoalDialogOpen, setIsEditGoalDialogOpen] = useState(false)
-  const [editingGoal, setEditingGoal] = useState<(typeof initialGoals)[0] | null>(null)
 
   const handleCreateGoal = () => {
     const newGoal = {

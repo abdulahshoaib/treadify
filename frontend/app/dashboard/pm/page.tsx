@@ -19,14 +19,26 @@ import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
 import Link from "next/link"
 
+interface Channel {
+    id: string
+    name: string
+    repo: string
+    deadline: string
+    progress: number
+    features: number
+    href: string
+    techLead: string
+    completedGoals: number
+    totalGoals: number
+}
+
 // Sample data for demonstration
 const initialProductChannel = null;
-
-const initialFeatureChannels = [];
+const initialFeatureChannels: Channel[] = [];
 
 export default function PMDashboard() {
-    const [productChannel, setProductChannel] = useState(initialProductChannel)
-    const [featureChannels, setFeatureChannels] = useState(initialFeatureChannels)
+    const [productChannel, setProductChannel] = useState<Channel| null>(initialProductChannel)
+    const [featureChannels] = useState<Channel[]>(initialFeatureChannels)
     const [newChannelName, setNewChannelName] = useState("")
     const [newChannelRepo, setNewChannelRepo] = useState("")
     const [newChannelDeadline, setNewChannelDeadline] = useState("")
@@ -41,6 +53,9 @@ export default function PMDashboard() {
             progress: 0,
             features: 0,
             href: `/dashboard/pm/channel/prod-1`,
+            techLead: "John Doe",
+            completedGoals: 0,
+            totalGoals: 0,
         }
 
         setProductChannel(newChannel)

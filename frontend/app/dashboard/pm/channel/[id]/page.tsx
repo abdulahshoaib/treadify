@@ -73,7 +73,7 @@ const techLeads = [
   { id: "tl-4", name: "Sarah Williams" },
 ]
 
-export default function ProductChannelPage({ params }: { params: { id: string } }) {
+export default function ProductChannelPage() {
   const [productChannel, setProductChannel] = useState(initialProductChannel)
   const [featureChannels, setFeatureChannels] = useState(initialFeatureChannels)
   const [newFeatureName, setNewFeatureName] = useState("")
