@@ -24,12 +24,6 @@ export default function ProfilePage() {
   const [github, setGithub] = useState("jamiesmith")
   const [role] = useState("Developer")
 
-  // Notification settings
-  const [emailNotifications, setEmailNotifications] = useState(true)
-  const [pushNotifications, setPushNotifications] = useState(true)
-  const [channelUpdates, setChannelUpdates] = useState(true)
-  const [goalCompletions, setGoalCompletions] = useState(true)
-
   // Security settings
   const [twoFactorAuth, setTwoFactorAuth] = useState(false)
 
@@ -72,12 +66,7 @@ export default function ProfilePage() {
             >
               Profile
             </TabsTrigger>
-            <TabsTrigger
-              value="notifications"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-purple-600 data-[state=active]:text-white"
-            >
-              Notifications
-            </TabsTrigger>
+
             <TabsTrigger
               value="security"
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-purple-600 data-[state=active]:text-white"
@@ -220,97 +209,6 @@ export default function ProfilePage() {
                 </CardFooter>
               </Card>
             </div>
-          </TabsContent>
-
-          <TabsContent value="notifications">
-            <Card className="border-slate-800/50 bg-slate-900/50 backdrop-blur-sm shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-white">Notification Preferences</CardTitle>
-                <CardDescription className="text-slate-400">Choose how you want to be notified</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-slate-300">Email Notifications</Label>
-                    <p className="text-xs text-slate-500">Receive notifications via email</p>
-                  </div>
-                  <Switch
-                    checked={emailNotifications}
-                    onCheckedChange={setEmailNotifications}
-                    className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-indigo-600 data-[state=checked]:to-purple-600"
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-slate-300">Push Notifications</Label>
-                    <p className="text-xs text-slate-500">Receive notifications in your browser</p>
-                  </div>
-                  <Switch
-                    checked={pushNotifications}
-                    onCheckedChange={setPushNotifications}
-                    className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-indigo-600 data-[state=checked]:to-purple-600"
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-slate-300">Channel Updates</Label>
-                    <p className="text-xs text-slate-500">Get notified when channels are updated</p>
-                  </div>
-                  <Switch
-                    checked={channelUpdates}
-                    onCheckedChange={setChannelUpdates}
-                    className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-indigo-600 data-[state=checked]:to-purple-600"
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-slate-300">Goal Completions</Label>
-                    <p className="text-xs text-slate-500">Get notified when goals are completed</p>
-                  </div>
-                  <Switch
-                    checked={goalCompletions}
-                    onCheckedChange={setGoalCompletions}
-                    className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-indigo-600 data-[state=checked]:to-purple-600"
-                  />
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button
-                  onClick={handleSaveProfile}
-                  disabled={isLoading}
-                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white border-0"
-                >
-                  <Save className="mr-2 h-4 w-4" />
-                  {isLoading ? (
-                    <div className="flex items-center">
-                      <svg
-                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      Saving...
-                    </div>
-                  ) : (
-                    "Save Preferences"
-                  )}
-                </Button>
-              </CardFooter>
-            </Card>
           </TabsContent>
 
           <TabsContent value="security">
