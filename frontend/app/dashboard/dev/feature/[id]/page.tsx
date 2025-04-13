@@ -5,7 +5,6 @@ import { CalendarClock, GitBranch, GitCommit, Github } from "lucide-react"
 import DashboardHeader from "@/components/dashboard-header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import {
   Dialog,
@@ -15,9 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
@@ -36,28 +33,22 @@ const initialGoals = [
     id: "goal-1",
     name: "Implement login form",
     description: "Create a responsive login form with validation",
-    progress: 100,
     status: "completed" as const,
-    assignee: "Jamie Smith",
-    isAssignedToMe: true,
+    deadline: "2023-11-15",
   },
   {
     id: "goal-2",
     name: "Set up authentication API",
     description: "Implement backend API endpoints for authentication",
-    progress: 75,
     status: "in-progress" as const,
-    assignee: "Jamie Smith",
-    isAssignedToMe: true,
+    deadline: "2023-11-20",
   },
   {
     id: "goal-3",
     name: "Add password reset functionality",
     description: "Create password reset flow with email verification",
-    progress: 30,
     status: "in-progress" as const,
-    assignee: "Taylor Wilson",
-    isAssignedToMe: false,
+    deadline: "2023-11-25",
   },
 ]
 
@@ -71,6 +62,7 @@ const initialCommits = [
     submitted: true,
     goalId: "goal-1",
     status: "approved" as const,
+    comment: "Great work! Clean implementation.",
   },
   {
     id: "commit-2",
@@ -80,6 +72,7 @@ const initialCommits = [
     submitted: true,
     goalId: "goal-2",
     status: "pending" as const,
+    comment: "",
   },
   {
     id: "commit-3",
@@ -89,6 +82,17 @@ const initialCommits = [
     submitted: false,
     goalId: null,
     status: null,
+    comment: "",
+  },
+  {
+    id: "commit-4",
+    hash: "m0n1o2p",
+    message: "Fixed password validation bug",
+    timestamp: "2023-11-12T11:20:00Z",
+    submitted: false,
+    goalId: null,
+    status: null,
+    comment: "",
   },
 ]
 
@@ -98,37 +102,7 @@ export default function DevFeatureChannelPage({ params }: { params: { id: string
   const [commits, setCommits] = useState(initialCommits)
   const [selectedGoal, setSelectedGoal] = useState<(typeof initialGoals)[0] | null>(null)
   const [selectedCommit, setSelectedCommit] = useState<string | null>(null)
-  const [updateProgress, setUpdateProgress] = useState<number>(0)
-  const [commitMessage, setCommitMessage] = useState("")
-  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false)
   const [isSubmitCommitDialogOpen, setIsSubmitCommitDialogOpen] = useState(false)
-
-  const handleUpdateGoal = () => {
-    if (!selectedGoal) return
-
-    const updatedGoals = goals.map((goal) => {
-      if (goal.id === selectedGoal.id) {
-        return {
-          ...goal,
-          progress: updateProgress,
-          status: updateProgress === 100 ? ("completed" as const) : ("in-progress" as const),
-        }
-      }
-      return goal
-    })
-
-    setGoals(updatedGoals)
-    setSelectedGoal(null)
-    setUpdateProgress(0)
-    setCommitMessage("")
-    setIsUpdateDialogOpen(false)
-  }
-
-  const openUpdateDialog = (goal: (typeof initialGoals)[0]) => {
-    setSelectedGoal(goal)
-    setUpdateProgress(goal.progress)
-    setIsUpdateDialogOpen(true)
-  }
 
   const handleSubmitCommit = () => {
     if (!selectedCommit || !selectedGoal) return
@@ -152,16 +126,12 @@ export default function DevFeatureChannelPage({ params }: { params: { id: string
     setIsSubmitCommitDialogOpen(false)
   }
 
-  // Filter goals assigned to the current user
-  const myGoals = goals.filter((goal) => goal.isAssignedToMe)
-  const otherGoals = goals.filter((goal) => !goal.isAssignedToMe)
-
-  // Calculate my progress
-  const myProgress =
-    myGoals.length > 0 ? Math.round(myGoals.reduce((sum, goal) => sum + goal.progress, 0) / myGoals.length) : 0
-
   // Get unsubmitted commits
   const unsubmittedCommits = commits.filter((commit) => !commit.submitted)
+
+  // Filter goals by status
+  const activeGoals = goals.filter((goal) => goal.status !== "completed")
+  const completedGoals = goals.filter((goal) => goal.status === "completed")
 
   return (
     <div className="flex min-h-screen flex-col bg-black text-white">
@@ -180,32 +150,23 @@ export default function DevFeatureChannelPage({ params }: { params: { id: string
             <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-400">
               {featureChannel.name}
             </h1>
-            <Button
-              variant="outline"
-              className="border-slate-800 bg-slate-900/30 text-white hover:text-cyan-400 hover:border-cyan-500/50 backdrop-blur-sm"
-              onClick={() => setIsSubmitCommitDialogOpen(true)}
-              disabled={unsubmittedCommits.length === 0}
-            >
-              <GitCommit className="mr-2 h-4 w-4" />
-              Submit Work
-            </Button>
           </div>
 
           <div className="mt-8 grid gap-6 md:grid-cols-3">
             <Card className="border-slate-800/30 bg-slate-900/30 backdrop-blur-md shadow-xl">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-white">My Progress</CardTitle>
+                <CardTitle className="text-sm font-medium text-white">Feature Progress</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-col space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-slate-400">Progress</span>
-                    <span className="font-medium text-white">{myProgress}%</span>
+                    <span className="font-medium text-white">{featureChannel.progress}%</span>
                   </div>
                   <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-slate-800/80 p-0.5">
                     <div
                       className="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 shadow-[0_0_5px_rgba(0,255,255,0.5)]"
-                      style={{ width: `${myProgress}%` }}
+                      style={{ width: `${featureChannel.progress}%` }}
                     />
                   </div>
                 </div>
@@ -236,19 +197,19 @@ export default function DevFeatureChannelPage({ params }: { params: { id: string
           </div>
         </div>
 
-        <Tabs defaultValue="my-goals" className="space-y-6">
+        <Tabs defaultValue="active-goals" className="space-y-6">
           <TabsList className="bg-slate-900/30 backdrop-blur-sm border border-slate-800/50 p-1 h-12">
             <TabsTrigger
-              value="my-goals"
+              value="active-goals"
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-900/20 h-10"
             >
-              My Goals
+              Active Goals
             </TabsTrigger>
             <TabsTrigger
-              value="all-goals"
+              value="completed-goals"
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-900/20 h-10"
             >
-              All Goals
+              Completed Goals
             </TabsTrigger>
             <TabsTrigger
               value="my-commits"
@@ -258,14 +219,12 @@ export default function DevFeatureChannelPage({ params }: { params: { id: string
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="my-goals">
+          <TabsContent value="active-goals">
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-white">My Goals</h2>
-              </div>
+              <h2 className="text-xl font-semibold text-white">Active Goals</h2>
 
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {myGoals.map((goal) => (
+                {activeGoals.map((goal) => (
                   <Card
                     key={goal.id}
                     className="border-slate-800/30 bg-slate-900/30 backdrop-blur-md shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-slate-700/50 group"
@@ -275,126 +234,65 @@ export default function DevFeatureChannelPage({ params }: { params: { id: string
                       <div className="flex justify-between items-center">
                         <CardTitle className="text-lg text-white">{goal.name}</CardTitle>
                         <Badge
-                          variant={goal.status === "completed" ? "default" : "outline"}
-                          className={
-                            goal.status === "completed"
-                              ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white border-0 shadow-sm shadow-green-900/20"
-                              : "border-slate-700 text-slate-300"
-                          }
+                          variant="outline"
+                          className="border-slate-700 text-slate-300"
                         >
-                          {goal.status === "completed"
-                            ? "Completed"
-                            : goal.status === "in-progress"
-                              ? "In Progress"
-                              : "Not Started"}
+                          In Progress
                         </Badge>
                       </div>
                       <CardDescription className="text-slate-400">{goal.description}</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <div className="rounded-full bg-gradient-to-br from-cyan-600 to-blue-600 p-0.5">
-                          <Avatar className="h-6 w-6 border border-black">
-                            <AvatarImage src="/placeholder.svg" alt={goal.assignee} />
-                            <AvatarFallback className="bg-slate-800 text-white text-xs">
-                              {goal.assignee.charAt(0)}
-                            </AvatarFallback>
-                          </Avatar>
-                        </div>
-                        <span className="text-sm text-slate-300">{goal.assignee}</span>
+                    <CardContent>
+                      <div className="text-sm text-slate-400">
+                        Deadline: {goal.deadline}
                       </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-slate-400">Progress</span>
-                          <span className="text-white">{goal.progress}%</span>
-                        </div>
-                        <div className="relative h-2 w-full overflow-hidden rounded-full bg-slate-800/80 p-0.5">
-                          <div
-                            className="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 shadow-[0_0_5px_rgba(0,255,255,0.5)]"
-                            style={{ width: `${goal.progress}%` }}
-                          />
-                        </div>
-                      </div>
-                      {goal.status !== "completed" && (
-                        <Button
-                          className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white border-0 shadow-lg shadow-blue-900/20"
-                          onClick={() => openUpdateDialog(goal)}
-                        >
-                          Update Progress
-                        </Button>
-                      )}
                     </CardContent>
                   </Card>
                 ))}
-                {myGoals.length === 0 && (
+                {activeGoals.length === 0 && (
                   <div className="col-span-full flex h-40 items-center justify-center rounded-lg border border-dashed border-slate-800/50 bg-slate-900/20 backdrop-blur-sm">
-                    <p className="text-sm text-slate-400">No goals assigned to you</p>
+                    <p className="text-sm text-slate-400">No active goals available</p>
                   </div>
                 )}
               </div>
             </div>
           </TabsContent>
 
-          <TabsContent value="all-goals">
+          <TabsContent value="completed-goals">
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-white">All Goals</h2>
-              </div>
+              <h2 className="text-xl font-semibold text-white">Completed Goals</h2>
 
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {otherGoals.map((goal) => (
+                {completedGoals.map((goal) => (
                   <Card
                     key={goal.id}
                     className="border-slate-800/30 bg-slate-900/30 backdrop-blur-md shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-slate-700/50 group"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/10 via-slate-900/0 to-purple-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-green-900/10 via-slate-900/0 to-emerald-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     <CardHeader>
                       <div className="flex justify-between items-center">
                         <CardTitle className="text-lg text-white">{goal.name}</CardTitle>
                         <Badge
-                          variant={goal.status === "completed" ? "default" : "outline"}
-                          className={
-                            goal.status === "completed"
-                              ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white border-0 shadow-sm shadow-green-900/20"
-                              : "border-slate-700 text-slate-300"
-                          }
+                          variant="default"
+                          className="bg-gradient-to-r from-green-500 to-emerald-600 text-white border-0 shadow-sm shadow-green-900/20"
                         >
-                          {goal.status === "completed"
-                            ? "Completed"
-                            : goal.status === "in-progress"
-                              ? "In Progress"
-                              : "Not Started"}
+                          Completed
                         </Badge>
                       </div>
                       <CardDescription className="text-slate-400">{goal.description}</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <div className="rounded-full bg-gradient-to-br from-cyan-600 to-blue-600 p-0.5">
-                          <Avatar className="h-6 w-6 border border-black">
-                            <AvatarImage src="/placeholder.svg" alt={goal.assignee} />
-                            <AvatarFallback className="bg-slate-800 text-white text-xs">
-                              {goal.assignee.charAt(0)}
-                            </AvatarFallback>
-                          </Avatar>
-                        </div>
-                        <span className="text-sm text-slate-300">{goal.assignee}</span>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-slate-400">Progress</span>
-                          <span className="text-white">{goal.progress}%</span>
-                        </div>
-                        <div className="relative h-2 w-full overflow-hidden rounded-full bg-slate-800/80 p-0.5">
-                          <div
-                            className="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 shadow-[0_0_5px_rgba(0,255,255,0.5)]"
-                            style={{ width: `${goal.progress}%` }}
-                          />
-                        </div>
+                    <CardContent>
+                      <div className="text-sm text-slate-400">
+                        Deadline: {goal.deadline}
                       </div>
                     </CardContent>
                   </Card>
                 ))}
+                {completedGoals.length === 0 && (
+                  <div className="col-span-full flex h-40 items-center justify-center rounded-lg border border-dashed border-slate-800/50 bg-slate-900/20 backdrop-blur-sm">
+                    <p className="text-sm text-slate-400">No completed goals yet</p>
+                  </div>
+                )}
               </div>
             </div>
           </TabsContent>
@@ -511,6 +409,12 @@ export default function DevFeatureChannelPage({ params }: { params: { id: string
                                     </Badge>
                                   </div>
                                 )}
+                                {commit.comment && (
+                                  <div className="mt-3 bg-slate-800/50 p-3 rounded-md border border-slate-700/50">
+                                    <p className="text-sm text-slate-300 mb-1">Comment from TL:</p>
+                                    <p className="text-white">{commit.comment}</p>
+                                  </div>
+                                )}
                               </div>
                             </CardContent>
                           </Card>
@@ -523,85 +427,20 @@ export default function DevFeatureChannelPage({ params }: { params: { id: string
           </TabsContent>
         </Tabs>
 
-        {/* Update Goal Dialog */}
-        <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
-          <DialogContent className="border-slate-800/50 bg-black/90 backdrop-blur-xl text-white shadow-xl shadow-purple-900/10">
-            <DialogHeader>
-              <DialogTitle className="text-xl text-white">Update Goal Progress</DialogTitle>
-              <DialogDescription className="text-slate-400">
-                Update your progress on this goal and add a commit message.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="goal-name" className="text-slate-300">
-                  Goal
-                </Label>
-                <Input
-                  id="goal-name"
-                  value={selectedGoal?.name || ""}
-                  disabled
-                  className="border-slate-800/50 bg-slate-900/50 text-slate-400"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="progress" className="text-slate-300">
-                  Progress (%)
-                </Label>
-                <Input
-                  id="progress"
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={updateProgress}
-                  onChange={(e) => setUpdateProgress(Number.parseInt(e.target.value) || 0)}
-                  className="border-slate-800/50 bg-slate-900/50 text-white focus:border-cyan-500 focus:ring-cyan-500"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="commit-message" className="text-slate-300">
-                  Commit Message
-                </Label>
-                <Textarea
-                  id="commit-message"
-                  value={commitMessage}
-                  onChange={(e) => setCommitMessage(e.target.value)}
-                  placeholder="Describe what you've accomplished"
-                  className="border-slate-800/50 bg-slate-900/50 text-white focus:border-cyan-500 focus:ring-cyan-500"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsUpdateDialogOpen(false)}
-                className="border-slate-800 bg-transparent text-white hover:text-cyan-400 hover:border-cyan-400"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleUpdateGoal}
-                className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white border-0 gap-2"
-              >
-                <GitCommit className="h-4 w-4" />
-                Submit Update
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
         {/* Submit Commit Dialog */}
         <Dialog open={isSubmitCommitDialogOpen} onOpenChange={setIsSubmitCommitDialogOpen}>
           <DialogContent className="border-slate-800/50 bg-black/90 backdrop-blur-xl text-white shadow-xl shadow-purple-900/10">
             <DialogHeader>
               <DialogTitle className="text-xl text-white">Submit Commit for Goal</DialogTitle>
               <DialogDescription className="text-slate-400">
-                Select a goal to submit this commit for review.
+                {selectedGoal
+                  ? `Submit a commit for the goal: ${selectedGoal.name}`
+                  : "Select a goal to submit this commit for review."}
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              {selectedCommit && (
-                <div className="bg-slate-900/50 p-3 rounded-md border border-slate-800/50">
+            <div className="py-4">
+              {selectedCommit ? (
+                <div className="bg-slate-900/50 p-3 rounded-md border border-slate-800/50 mb-4">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="bg-slate-800/80 p-1.5 rounded-md">
                       <GitBranch className="h-4 w-4 text-cyan-400" />
@@ -612,31 +451,60 @@ export default function DevFeatureChannelPage({ params }: { params: { id: string
                   </div>
                   <p className="text-white">{commits.find((c) => c.id === selectedCommit)?.message}</p>
                 </div>
-              )}
-              <div className="grid gap-2">
-                <Label htmlFor="goal" className="text-slate-300">
-                  Select Goal
-                </Label>
-                <Select onValueChange={(value) => setSelectedGoal(goals.find((g) => g.id === value) || null)}>
-                  <SelectTrigger className="border-slate-800/50 bg-slate-900/50 text-white focus:border-cyan-500 focus:ring-cyan-500">
-                    <SelectValue placeholder="Select a goal" />
-                  </SelectTrigger>
-                  <SelectContent className="border-slate-800 bg-black/90 backdrop-blur-xl text-white">
-                    {myGoals
-                      .filter((g) => g.status !== "completed")
-                      .map((goal) => (
+              ) : null}
+
+              {!selectedGoal && (
+                <div className="grid gap-2">
+                  <Label htmlFor="goal" className="text-slate-300">
+                    Select Goal
+                  </Label>
+                  <Select onValueChange={(value) => setSelectedGoal(goals.find((g) => g.id === value) || null)}>
+                    <SelectTrigger className="border-slate-800/50 bg-slate-900/50 text-white focus:border-cyan-500 focus:ring-cyan-500">
+                      <SelectValue placeholder="Select a goal" />
+                    </SelectTrigger>
+                    <SelectContent className="border-slate-800 bg-black/90 backdrop-blur-xl text-white">
+                      {activeGoals.map((goal) => (
                         <SelectItem key={goal.id} value={goal.id} className="focus:bg-slate-800 focus:text-cyan-400">
                           {goal.name}
                         </SelectItem>
                       ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {!selectedCommit && selectedGoal && (
+                <div className="grid gap-2">
+                  <Label htmlFor="commit" className="text-slate-300">
+                    Select Commit
+                  </Label>
+                  <Select onValueChange={(value) => setSelectedCommit(value)}>
+                    <SelectTrigger className="border-slate-800/50 bg-slate-900/50 text-white focus:border-cyan-500 focus:ring-cyan-500">
+                      <SelectValue placeholder="Select a commit" />
+                    </SelectTrigger>
+                    <SelectContent className="border-slate-800 bg-black/90 backdrop-blur-xl text-white">
+                      {unsubmittedCommits.map((commit) => (
+                        <SelectItem
+                          key={commit.id}
+                          value={commit.id}
+                          className="focus:bg-slate-800 focus:text-cyan-400"
+                        >
+                          {commit.hash.substring(0, 7)} - {commit.message.substring(0, 30)}...
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
             <DialogFooter>
               <Button
                 variant="outline"
-                onClick={() => setIsSubmitCommitDialogOpen(false)}
+                onClick={() => {
+                  setIsSubmitCommitDialogOpen(false)
+                  setSelectedCommit(null)
+                  setSelectedGoal(null)
+                }}
                 className="border-slate-800 bg-transparent text-white hover:text-cyan-400 hover:border-cyan-400"
               >
                 Cancel
@@ -656,4 +524,3 @@ export default function DevFeatureChannelPage({ params }: { params: { id: string
     </div>
   )
 }
-
