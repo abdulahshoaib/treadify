@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { CalendarClock, Plus, Users } from "lucide-react"
+import { CalendarClock, Github, Plus, Users, Code } from 'lucide-react'
 import DashboardHeader from "@/components/dashboard-header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,8 +18,20 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Progress } from "@/components/ui/progress"
+import Link from "next/link"
 
 // Sample data for demonstration
+const initialProductChannel = {
+  id: "prod-1",
+  name: "Mobile App Redesign",
+  repo: "treadify/mobile-app",
+  deadline: "Dec 15, 2023",
+  progress: 35,
+  features: 3,
+  joinCode: "TREAD-123",
+}
+
 const initialFeatureChannels = [
   {
     id: "feat-1",
@@ -28,6 +40,8 @@ const initialFeatureChannels = [
     deadline: "Nov 20, 2023",
     progress: 80,
     techLead: "Michael Chen",
+    completedGoals: 4,
+    totalGoals: 5,
   },
   {
     id: "feat-2",
@@ -36,6 +50,8 @@ const initialFeatureChannels = [
     deadline: "Nov 30, 2023",
     progress: 45,
     techLead: "Emily Rodriguez",
+    completedGoals: 2,
+    totalGoals: 5,
   },
   {
     id: "feat-3",
@@ -44,6 +60,8 @@ const initialFeatureChannels = [
     deadline: "Dec 10, 2023",
     progress: 20,
     techLead: "David Kim",
+    completedGoals: 1,
+    totalGoals: 5,
   },
 ]
 
@@ -56,12 +74,14 @@ const techLeads = [
 ]
 
 export default function ProductChannelPage({ params }: { params: { id: string } }) {
+  const [productChannel, setProductChannel] = useState(initialProductChannel)
   const [featureChannels, setFeatureChannels] = useState(initialFeatureChannels)
   const [newFeatureName, setNewFeatureName] = useState("")
   const [newFeatureDescription, setNewFeatureDescription] = useState("")
   const [newFeatureDeadline, setNewFeatureDeadline] = useState("")
   const [selectedTechLead, setSelectedTechLead] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isJoinCodeDialogOpen, setIsJoinCodeDialogOpen] = useState(false)
 
   const handleCreateFeature = () => {
     const selectedLead = techLeads.find((tl) => tl.id === selectedTechLead)
@@ -73,6 +93,8 @@ export default function ProductChannelPage({ params }: { params: { id: string } 
       deadline: newFeatureDeadline,
       progress: 0,
       techLead: selectedLead ? selectedLead.name : "Unassigned",
+      completedGoals: 0,
+      totalGoals: 0,
     }
 
     setFeatureChannels([...featureChannels, newFeature])
@@ -104,12 +126,14 @@ export default function ProductChannelPage({ params }: { params: { id: string } 
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-400">
-              Mobile App Redesign
+              {productChannel.name}
             </h1>
             <Button
               variant="outline"
-              className="border-slate-800 bg-slate-900/30 text-white hover:text-cyan-400 hover:border-cyan-500/50 hover:bg-blue-950 backdrop-blur-sm"
+              className="border-slate-800 bg-slate-900/30 text-white hover:text-cyan-400 hover:border-cyan-500/50 backdrop-blur-sm"
+              onClick={() => setIsJoinCodeDialogOpen(true)}
             >
+              <Code className="mr-2 h-4 w-4" />
               Generate Join Code
             </Button>
           </div>
@@ -136,24 +160,24 @@ export default function ProductChannelPage({ params }: { params: { id: string } 
             </Card>
             <Card className="border-slate-800/30 bg-slate-900/30 backdrop-blur-md shadow-xl">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-white">Deadline</CardTitle>
+                <CardTitle className="text-sm font-medium text-white">GitHub Repository</CardTitle>
               </CardHeader>
               <CardContent className="flex items-center space-x-3">
                 <div className="bg-slate-800/80 p-2.5 rounded-md">
-                  <CalendarClock className="h-5 w-5 text-cyan-400" />
+                  <Github className="h-5 w-5 text-cyan-400" />
                 </div>
-                <span className="text-slate-300">December 15, 2023</span>
+                <span className="text-slate-300">{productChannel.repo}</span>
               </CardContent>
             </Card>
             <Card className="border-slate-800/30 bg-slate-900/30 backdrop-blur-md shadow-xl">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-white">Team Members</CardTitle>
+                <CardTitle className="text-sm font-medium text-white">Deadline</CardTitle>
               </CardHeader>
               <CardContent className="flex items-center space-x-3">
                 <div className="bg-slate-800/80 p-2.5 rounded-md">
-                  <Users className="h-5 w-5 text-purple-400" />
+                  <CalendarClock className="h-5 w-5 text-purple-400" />
                 </div>
-                <span className="text-slate-300">8 members</span>
+                <span className="text-slate-300">{productChannel.deadline}</span>
               </CardContent>
             </Card>
           </div>
@@ -283,17 +307,48 @@ export default function ProductChannelPage({ params }: { params: { id: string } 
                       />
                     </div>
                   </div>
-                  <Button
-                    variant="outline"
-                    className="w-full border-slate-800 bg-slate-900/30 text-white hover:bg-blue-950 hover:text-cyan-400 hover:border-cyan-500/50 backdrop-blur-sm"
-                  >
-                    View Details
-                  </Button>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-400">Goals: {feature.completedGoals}/{feature.totalGoals}</span>
+                  </div>
+                  <Link href={`/dashboard/pm/feature/${feature.id}`} className="block w-full">
+                    <Button
+                      variant="outline"
+                      className="w-full border-slate-800 bg-slate-900/30 text-white hover:text-cyan-400 hover:border-cyan-500/50 backdrop-blur-sm"
+                    >
+                      View Details
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
             ))}
           </div>
         </div>
+
+        {/* Join Code Dialog */}
+        <Dialog open={isJoinCodeDialogOpen} onOpenChange={setIsJoinCodeDialogOpen}>
+          <DialogContent className="border-slate-800/50 bg-black/90 backdrop-blur-xl text-white shadow-xl shadow-purple-900/10">
+            <DialogHeader>
+              <DialogTitle className="text-xl text-white">Product Channel Join Code</DialogTitle>
+              <DialogDescription className="text-slate-400">
+                Share this code with technical leads to join this product channel.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex items-center justify-center py-8">
+              <div className="bg-slate-900/80 px-8 py-6 rounded-lg border border-slate-800/50 text-center">
+                <p className="text-sm text-slate-400 mb-2">Join Code</p>
+                <p className="text-3xl font-mono font-bold text-cyan-400 tracking-wider">{productChannel.joinCode}</p>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                onClick={() => setIsJoinCodeDialogOpen(false)}
+                className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white border-0"
+              >
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   )
