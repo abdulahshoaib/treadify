@@ -74,6 +74,31 @@ Register a new user account.
 
 ---
 
+### `GET` /auth/checkUsername
+Check if a username is available.
+
+**Query Parameters:**
+- `username` - The username to check
+
+**Response (200):**
+```json
+{
+  "available": "true"
+}
+```
+or
+```json
+{
+  "available": "false"
+}
+```
+
+**Error Responses:**
+- `400` - Invalid Input
+- `500` - Internal Server error
+
+---
+
 ### `POST` /auth/logout
 Ends the current user session.
 
