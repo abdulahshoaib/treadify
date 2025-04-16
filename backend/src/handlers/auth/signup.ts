@@ -5,7 +5,7 @@ import { query } from "../../database/query.ts"
 
 export const checkUsername = async (req: Request, res: Response) => {
     try {
-        const { username } = req.params
+        const { username } = req.query
         if (!username)
             return res.status(400).json({ error: "Invalid Input" })
 
