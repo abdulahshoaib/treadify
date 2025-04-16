@@ -3,6 +3,30 @@ import bcrypt from "bcrypt"
 
 import { query } from "../../database/query.ts"
 
+export const checkUsername = async (req: Request, res: Response) => {
+    try {
+        const { username } = req.params
+        if (!username)
+            return res.status(400).json({ error: "Invalid Input" })
+
+        const existingUser = await query(`
+              SELECT * FROM Users WHERE Username = @username
+       `, { username })
+
+        if (existingUser.length > 0){
+            console.log("Username exists");
+            return res.status(200).json({ available: false })
+        }
+
+        console.log("Username is available");
+        return res.status(200).json({ available: true })
+
+    } catch (err: any) {
+        console.error(err.message)
+        return res.status(500).json({ error: "Internal Server Error" })
+    }
+}
+
 export const signup = async (req: Request, res: Response) => {
     try {
         const { FirstName, LastName, role, username, email, pass } = req.body
