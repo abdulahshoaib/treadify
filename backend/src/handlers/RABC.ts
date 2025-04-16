@@ -1,4 +1,4 @@
-import { query } from "../database/query"
+import { query } from "../database/query.ts"
 
 export const hasPermission = async (role: string, permission: string): Promise<boolean> => {
     try {
