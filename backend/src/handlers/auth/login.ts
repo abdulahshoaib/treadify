@@ -8,7 +8,7 @@ export const login = async (req: Request, res: Response) => {
         const { username, pass } = req.body
 
         if (!username || !pass)
-            res.status(400).json({ error: "Invalid Input" })
+            return res.status(400).json({ error: "Invalid Input" })
 
         const authLogin = `
             SELECT u.UserID, u.Username, u.Email, u.Pass, cm.ProductID, cm.FeatureID, r.Name
@@ -20,18 +20,19 @@ export const login = async (req: Request, res: Response) => {
         `
 
         const user = await query(authLogin, { username })
-        console.log(user)
 
         if (user.length == 0)
-            res.status(401).json({ error: "No User Found" })
+            return res.status(401).json({ error: "No User Found" })
+
+        console.log("got data from the database", user)
 
         const validPassword = await bcrypt.compare(pass, user[0].Pass)
         if (!validPassword)
-            res.status(401).json({ error: "Invalid Password" })
+            return res.status(401).json({ error: "Invalid Password" })
 
         // check for session middleware working
         if (!req.session)
-            res.status(500).json({ error: "Session Error" });
+            return res.status(500).json({ error: "Session Error" });
 
         // create a session
         req.session.User = {
@@ -43,10 +44,10 @@ export const login = async (req: Request, res: Response) => {
             role: user[0].Name
         }
 
-        res.status(200).json({ message: "Login Successful" })
+        return res.status(200).json({ message: "Login Successful" })
 
     } catch (err: any) {
         console.log(err.message)
-        res.status(500).json({ error: "Internal Server Error" })
+        return res.status(500).json({ error: "Internal Server Error" })
     }
 }
