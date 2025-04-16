@@ -1,6 +1,7 @@
 import express from "express"
 import session from "express-session"
 import dotenv from "dotenv"
+import cors from "cors"
 
 import Routes from "./routes/routes.ts"
 
@@ -16,8 +17,9 @@ declare module "express-session" {
         }
     }
 }
+
 const app = express()
-const port = 3000
+const port = 5000
 
 dotenv.config()
 
@@ -29,15 +31,19 @@ if (!secret) {
 }
 
 app.use(express.json())
+app.use(cors({
+    origin: "http://localhost:3000",
+    credentials: true
+}))
 app.use(
     session({
         secret,
         resave: false,
         saveUninitialized: false,
         cookie: {
-            secure: process.env.NODE_ENV === "production" ? true : false,
+            secure: false,
             httpOnly: true,
-            sameSite: "strict",
+            sameSite: "lax",
             maxAge: 1000 * 60 * 60 * 12, //valid for 12 hours
         },
     })
