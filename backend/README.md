@@ -964,3 +964,4 @@ Get admin statistics (admin-only).
 5. User can then link commits to goals in feature channels
 
 ## TODO
+- Added the checkUsername route, complete the documentation for that route
