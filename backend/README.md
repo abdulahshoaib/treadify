@@ -74,11 +74,8 @@ Register a new user account.
 
 ---
 
-### `GET` /auth/checkUsername
+### `GET` /auth/checkUsername/:username
 Check if a username is available.
-
-**Query Parameters:**
-- `username` - The username to check
 
 **Response (200):**
 ```json
@@ -989,4 +986,3 @@ Get admin statistics (admin-only).
 5. User can then link commits to goals in feature channels
 
 ## TODO
-- Added the checkUsername route, complete the documentation for that route
