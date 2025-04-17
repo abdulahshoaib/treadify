@@ -117,9 +117,14 @@ export default function SignupPage() {
                                     <div className="relative">
                                         <Input
                                             id="username"
-                                            placeholder="johndoe"
+                                            placeholder="username"
                                             value={username}
-                                            onChange={(e) => setUsername(e.target.value.toLowerCase().trim())}
+                                            onChange={(e) => {
+                                                const value = e.target.value
+                                                    .toLowerCase()
+                                                    .replace(/[^a-z0-9]/g, "")
+                                                setUsername(value)
+                                            }}
                                             required
                                             className="border-slate-800 bg-slate-950/50 text-white placeholder:text-slate-500 focus:border-indigo-500 focus:ring-indigo-500 pr-10 h-12"
                                         />
@@ -208,24 +213,29 @@ export default function SignupPage() {
                                         Role
                                     </Label>
                                     <RadioGroup value={role} onValueChange={setRole} className="grid grid-cols-1 gap-2 pt-2">
-                                        <div className="flex items-center space-x-2 rounded-lg border border-slate-800 p-3 transition-colors hover:bg-slate-900">
+                                        <label
+                                            htmlFor="pm"
+                                            className="flex items-center space-x-2 rounded-lg border border-slate-800 p-3 transition-colors hover:bg-slate-900 cursor-pointer"
+                                        >
                                             <RadioGroupItem value="productmanager" id="pm" className="border-slate-600 text-indigo-400" />
-                                            <Label htmlFor="pm" className="flex-1 cursor-pointer font-normal text-slate-300">
-                                                Product Manager
-                                            </Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2 rounded-lg border border-slate-800 p-3 transition-colors hover:bg-slate-900">
+                                            <span className="flex-1 font-normal text-slate-300">Product Manager</span>
+                                        </label>
+
+                                        <label
+                                            htmlFor="tl"
+                                            className="flex items-center space-x-2 rounded-lg border border-slate-800 p-3 transition-colors hover:bg-slate-900 cursor-pointer"
+                                        >
                                             <RadioGroupItem value="technicallead" id="tl" className="border-slate-600 text-indigo-400" />
-                                            <Label htmlFor="tl" className="flex-1 cursor-pointer font-normal text-slate-300">
-                                                Technical Lead
-                                            </Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2 rounded-lg border border-slate-800 p-3 transition-colors hover:bg-slate-900">
+                                            <span className="flex-1 font-normal text-slate-300">Technical Lead</span>
+                                        </label>
+
+                                        <label
+                                            htmlFor="dev"
+                                            className="flex items-center space-x-2 rounded-lg border border-slate-800 p-3 transition-colors hover:bg-slate-900 cursor-pointer"
+                                        >
                                             <RadioGroupItem value="developers" id="dev" className="border-slate-600 text-indigo-400" />
-                                            <Label htmlFor="dev" className="flex-1 cursor-pointer font-normal text-slate-300">
-                                                Developer
-                                            </Label>
-                                        </div>
+                                            <span className="flex-1 font-normal text-slate-300">Developer</span>
+                                        </label>
                                     </RadioGroup>
                                 </div>
                             </CardContent>
