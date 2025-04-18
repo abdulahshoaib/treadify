@@ -3,7 +3,8 @@ import { query } from "../../database/query.ts"
 
 const getUserProfile = async (req: Request, res: Response) => {
     if (!req.session.User)
-        res.status(401).json({ error: "Unauthorized Access" })
+        return res.status(401).json({ error: "Unauthorized Access" })
+
 
     try {
         const UserID = req.session.User?.id
@@ -12,22 +13,21 @@ const getUserProfile = async (req: Request, res: Response) => {
             return res.status(400).json({ error: "Username is required" })
 
         const result = await query(
-            `SELECT
-                u.*
-                ug.GitHubUsername
+            `SELECT u.*, ug.GitHubUsername
             FROM Users u
             JOIN UserGitHubIntegration ug ON u.UserID = ug.UserID
-            WHERE UserID = @UserID`,
+            WHERE u.UserID = @UserID;
+            `,
             { UserID }
         )
 
         if (!result.length)
             return res.status(404).json({ error: "User not found" })
 
-        res.json({ message: `User profile for ${UserID}`, data: result[0] })
+        return res.json({ message: `User profile for ${UserID}`, data: result[0] })
     } catch (err: any) {
         console.error(err.message)
-        res.status(500).json({ error: err.message })
+        return res.status(500).json({ error: err.message })
     }
 }
 
