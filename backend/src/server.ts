@@ -56,6 +56,7 @@ app.use("/productchannel", Routes.productRoutes)
 app.use("/featurechannel", Routes.featureRoutes)
 app.use("/progress", Routes.progressRoutes)
 app.use("/messages", Routes.messageRoutes)
+app.use("/dashboard", Routes.dashboardRoutes)
 
 
 app.listen(port, () => {
