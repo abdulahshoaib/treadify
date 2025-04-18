@@ -72,10 +72,10 @@ export default function SignupPage() {
                 body: JSON.stringify({
                     FirstName: fname,
                     LastName: lname,
-                    email,
+                    role: role,
                     username,
+                    email,
                     pass: password,
-                    role,
                 }),
                 credentials: "include"
             })
@@ -83,7 +83,7 @@ export default function SignupPage() {
             const data = await res.json()
 
             if (!res.ok) {
-                alert("Error creating account")
+                alert(data.error)
             }
             else {
                 console.log(data)
@@ -215,38 +215,27 @@ export default function SignupPage() {
                                     </div>
                                 </div>
 
-                                {/* GitHub */}
+                                {/* Role */}
                                 <div className="space-y-2">
                                     <Label className="text-slate-300 flex items-center gap-2">
-                                        <UserCog className="h-4 w-4 text-slate-400" />
-                                        Role
+                                        <UserCog className="h-4 w-4 text-slate-400" /> Role
                                     </Label>
                                     <RadioGroup value={role} onValueChange={setRole} className="grid grid-cols-1 gap-2 pt-2">
-                                        <label
-                                            htmlFor="pm"
-                                            className="flex items-center space-x-2 rounded-lg border border-slate-800 p-3 transition-colors hover:bg-slate-900 cursor-pointer"
-                                        >
-                                            <RadioGroupItem value="productmanager" id="pm" className="border-slate-600 text-indigo-400" />
+                                        <label htmlFor="productmanager" className="flex items-center space-x-2 rounded-lg border border-slate-800 p-3 transition-colors hover:bg-slate-900 cursor-pointer">
+                                            <RadioGroupItem value="productmanager" id="productmanager" className="border-slate-600 text-indigo-400" />
                                             <span className="flex-1 font-normal text-slate-300">Product Manager</span>
                                         </label>
-
-                                        <label
-                                            htmlFor="tl"
-                                            className="flex items-center space-x-2 rounded-lg border border-slate-800 p-3 transition-colors hover:bg-slate-900 cursor-pointer"
-                                        >
-                                            <RadioGroupItem value="technicallead" id="tl" className="border-slate-600 text-indigo-400" />
+                                        <label htmlFor="technicallead" className="flex items-center space-x-2 rounded-lg border border-slate-800 p-3 transition-colors hover:bg-slate-900 cursor-pointer">
+                                            <RadioGroupItem value="technicallead" id="technicallead" className="border-slate-600 text-indigo-400" />
                                             <span className="flex-1 font-normal text-slate-300">Technical Lead</span>
                                         </label>
-
-                                        <label
-                                            htmlFor="dev"
-                                            className="flex items-center space-x-2 rounded-lg border border-slate-800 p-3 transition-colors hover:bg-slate-900 cursor-pointer"
-                                        >
-                                            <RadioGroupItem value="developers" id="dev" className="border-slate-600 text-indigo-400" />
+                                        <label htmlFor="developer" className="flex items-center space-x-2 rounded-lg border border-slate-800 p-3 transition-colors hover:bg-slate-900 cursor-pointer">
+                                            <RadioGroupItem value="developer" id="developer" className="border-slate-600 text-indigo-400" />
                                             <span className="flex-1 font-normal text-slate-300">Developer</span>
                                         </label>
                                     </RadioGroup>
                                 </div>
+
                             </CardContent>
                             <CardFooter className="p-6 pt-0 flex flex-col space-y-4">
                                 <Button
