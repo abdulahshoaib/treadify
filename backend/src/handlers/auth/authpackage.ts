@@ -1,6 +1,7 @@
 import { login } from "./login.ts"
 import { signup, checkUsername } from "./signup.ts"
 import { logout } from "./logout.ts"
+import { validateCode, generateCode } from "./joincode.ts"
 import github from "./github.ts"
 
 export const Auth = {
@@ -8,5 +9,7 @@ export const Auth = {
     login,
     signup,
     logout,
-    github
+    github,
+    generateCode,
+    validateCode
 }
