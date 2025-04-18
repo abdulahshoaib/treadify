@@ -25,49 +25,47 @@ type ProductChannel = {
     progress: number
 } | null
 
-type FeatureChannel = {
-    id: string
-    name: string
-    description: string
-    deadline: string
-    progress: number
-    completedGoals: number
-    totalGoals: number
-} | null
-
 // Sample data for demonstration
 const initialProductChannel: ProductChannel = null
-const initialFeatureChannel: FeatureChannel = null
 
 export default function DevDashboard() {
     const [productChannel, setProductChannel] = useState(initialProductChannel)
-    const [featureChannel, setFeatureChannel] = useState(initialFeatureChannel)
     const [joinCode, setJoinCode] = useState("")
     const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false)
 
-    const handleJoinChannel = () => {
-        // In a real app, this would validate the join code and fetch the channel data
-        if (joinCode === "TREAD-123") {
-            setProductChannel({
-                id: "prod-1",
-                name: "Mobile App Redesign",
-                repo: "treadify/mobile-app",
-                deadline: "Dec 15, 2023",
-                progress: 35,
+    const handleJoinChannel = async () => {
+
+        try {
+            const res = await fetch(`http://localhost:5000/auth/validateCode`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ code: joinCode }),
+                credentials: "include",
             })
 
-            setFeatureChannel({
-                id: "feat-1",
-                name: "User Authentication",
-                description: "Implement secure login and registration system",
-                deadline: "Nov 20, 2023",
-                progress: 68,
-                completedGoals: 3,
-                totalGoals: 5,
-            })
+            const data = await res.json()
+
+            if (!res.ok)
+                alert("Invalid join code. Please check and try again.")
+
+            // set the user dashboard
+            else{
+                setProductChannel({
+                    id: data.id,
+                    name: data.name,
+                    repo: data.repo,
+                    deadline: data.deadline,
+                    progress: data.progress,
+                })
+                setIsJoinDialogOpen(false)
+            }
 
             setJoinCode("")
-            setIsJoinDialogOpen(false)
+        } catch (error) {
+            console.error("Error joining channel:", error)
+            alert("Failed to join channel. Please try again.")
         }
     }
 
@@ -147,55 +145,6 @@ export default function DevDashboard() {
                                 </Link>
                             </CardFooter>
                         </Card>
-
-                        {featureChannel ? (
-                            <Card className="border-slate-800/30 bg-slate-900/30 backdrop-blur-md shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-slate-700/50 group">
-                                <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/10 via-slate-900/0 to-purple-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                                <CardHeader>
-                                    <CardTitle className="text-xl text-white">{featureChannel.name}</CardTitle>
-                                    <CardDescription className="text-slate-400">{featureChannel.description}</CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between text-sm">
-                                            <span className="text-slate-400">Progress</span>
-                                            <span className="text-white">{featureChannel.progress}%</span>
-                                        </div>
-                                        <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-slate-800/80 p-0.5">
-                                            <div
-                                                className="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 shadow-[0_0_5px_rgba(0,255,255,0.5)]"
-                                                style={{ width: `${featureChannel.progress}%` }}
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center justify-between text-sm">
-                                        <span className="text-slate-400">
-                                            Goals: {featureChannel.completedGoals}/{featureChannel.totalGoals}
-                                        </span>
-                                        <span className="text-slate-400">Deadline: {featureChannel.deadline}</span>
-                                    </div>
-                                </CardContent>
-                                <CardFooter>
-                                    <Link href={`/dashboard/dev/feature/${featureChannel.id}`} className="w-full">
-                                        <Button className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white border-0 shadow-lg shadow-blue-900/20">
-                                            View My Tasks
-                                        </Button>
-                                    </Link>
-                                </CardFooter>
-                            </Card>
-                        ) : (
-                            <Card className="border-slate-800/30 bg-slate-900/30 backdrop-blur-md shadow-xl">
-                                <CardHeader>
-                                    <CardTitle className="text-white">Feature Channel</CardTitle>
-                                    <CardDescription className="text-slate-400">
-                                        You haven't been assigned to a feature channel yet
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent className="flex flex-col items-center justify-center py-6">
-                                    <p className="text-slate-400 mb-4">Wait for a Technical Lead to assign you to a feature channel</p>
-                                </CardContent>
-                            </Card>
-                        )}
                     </div>
                 )}
 
