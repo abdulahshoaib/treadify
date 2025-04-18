@@ -5,7 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ArrowRight, KeyRound, Mail, User, UserCog, CheckCircle, XCircle, Loader2 } from "lucide-react"
+import { ArrowRight, KeyRound, Mail, User, UserCog, CheckCircle, XCircle, Loader2, Github } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -21,6 +21,7 @@ export default function SignupPage() {
     const [lname, setLName] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
+    const [github, setGithub] = useState("")
     const [role, setRole] = useState("developer")
     const [isLoading, setIsLoading] = useState(false)
 
@@ -86,6 +87,7 @@ export default function SignupPage() {
             }
             else {
                 console.log(data)
+                router.push("/connect/github")
             }
 
         } catch (err: any) {
@@ -104,10 +106,10 @@ export default function SignupPage() {
                         <h2 className="text-3xl font-bold text-white mb-2">Join Treadify</h2>
                         <p className="text-slate-400">Create your account and start collaborating</p>
                     </div>
-
                     <Card className="border-0 bg-slate-900/50 backdrop-blur-sm shadow-xl rounded-xl overflow-hidden">
                         <form onSubmit={handleSubmit}>
                             <CardContent className="p-6 space-y-4">
+
                                 {/* Username */}
                                 <div className="space-y-2">
                                     <Label htmlFor="username" className="text-slate-300 flex items-center gap-2">
@@ -139,6 +141,7 @@ export default function SignupPage() {
                                         </div>
                                     </div>
                                 </div>
+
                                 {/* First Name */}
                                 <div className="space-y-2">
                                     <Label htmlFor="fname" className="text-slate-300 flex items-center gap-2">
@@ -174,6 +177,8 @@ export default function SignupPage() {
                                         />
                                     </div>
                                 </div>
+
+                                {/* Email */}
                                 <div className="space-y-2">
                                     <Label htmlFor="email" className="text-slate-300 flex items-center gap-2">
                                         <Mail className="h-4 w-4 text-slate-400" />
@@ -191,6 +196,8 @@ export default function SignupPage() {
                                         />
                                     </div>
                                 </div>
+
+                                {/* Password */}
                                 <div className="space-y-2">
                                     <Label htmlFor="password" className="text-slate-300 flex items-center gap-2">
                                         <KeyRound className="h-4 w-4 text-slate-400" />
@@ -207,6 +214,8 @@ export default function SignupPage() {
                                         />
                                     </div>
                                 </div>
+
+                                {/* GitHub */}
                                 <div className="space-y-2">
                                     <Label className="text-slate-300 flex items-center gap-2">
                                         <UserCog className="h-4 w-4 text-slate-400" />
