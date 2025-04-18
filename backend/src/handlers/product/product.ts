@@ -2,7 +2,6 @@ import type { Request, Response } from "express"
 import { query } from "../../database/query.ts"
 import axios from "axios"
 import { hasPermission } from "../RABC.ts"
-import { randomBytes } from 'crypto'
 
 const createProductChannel = async (req: Request, res: Response) => {
     if (!req.session.User)
@@ -287,7 +286,6 @@ const getChannelReport = async (req: Request, res: Response) => {
 
 export default {
     createProductChannel,
-    generateJoinCode,
     addFeature,
     deprecateChannel,
     updateFeatureDeadline,
