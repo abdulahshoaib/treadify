@@ -36,19 +36,12 @@ export default function LoginPage() {
             if (!res.ok) {
                 alert(data.message || "Login Failed")
             } else {
-                alert("Login Success")
-                console.log(data)
-
-                if (data.role === "productmanager")
-                    router.push("/dashboard/pm")
-                if (data.role === "tl")
-                    router.push("/dashboard/tl")
-                if (data.role === "dev")
-                    router.push("/dashboard/dev")
+                console.log(data.message)
+                router.push(data.redirect)
             }
         } catch (err: any) {
             console.error("Login error:", err)
-            alert("Something went wrong. Please try again.")
+            alert(err.message)
         } finally {
             setIsLoading(false)
         }
@@ -209,6 +202,7 @@ export default function LoginPage() {
                             </CardContent>
                             <CardFooter className="p-6 pt-0 flex flex-col space-y-4">
                                 <Button
+                                    variant="outline"
                                     type="submit"
                                     className="w-full h-12 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium rounded-lg"
                                     disabled={isLoading}
