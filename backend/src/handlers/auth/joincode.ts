@@ -16,8 +16,10 @@ export const validateCode = async (req: Request, res: Response) => {
             { code }
         )
 
-        if (result.length === 0)
+        if (result.length === 0){
+            console.log("Invalid code")
             return res.status(400).json({ error: "Invalid code" })
+        }
 
         const channel = await query(`
             SELECT ChannelId FROM ChannelInvites WHERE Code = @code`,
@@ -29,7 +31,6 @@ export const validateCode = async (req: Request, res: Response) => {
 
         const channelID = channel[0].ChannelId
 
-
         if (req.session.User) {
             req.session.User = {
                 ...req.session.User,
@@ -37,6 +38,7 @@ export const validateCode = async (req: Request, res: Response) => {
             }
         }
 
+        console.log("Code is valid")
         return res.status(200).json({ message: "Code is valid", channelID: channelID })
 
     } catch (err: any) {
