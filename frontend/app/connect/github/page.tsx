@@ -9,14 +9,14 @@ export default function ConnectGitHub() {
   const router = useRouter();
 
   useEffect(() => {
-    // Optional: if already connected, auto-redirect to dashboard
+
     const checkGitHubConnection = async () => {
       const res = await fetch("http://localhost:5000/auth/github/status", {
         credentials: "include",
       });
       const data = await res.json();
       if (data.connected && data.role) {
-        router.push(`/dashboard/${data.role}`);
+        router.push(`/dashboard/${data.username}`);
       }
     };
 
