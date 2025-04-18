@@ -41,7 +41,7 @@ const githubAuthHandler = {
             const accessToken = tokenResponse.data.access_token
             if (!accessToken) {
                 console.log("Failed to get access token")
-                res.status(400).json({ error: "Failed to get GitHub access token" })
+                return res.status(400).json({ error: "Failed to get GitHub access token" })
             }
 
             const userResponse = await axios.get("https://api.github.com/user", {
@@ -51,14 +51,7 @@ const githubAuthHandler = {
             const { login: GitHubUsername } = userResponse.data
 
             const userID = req.session.User?.id
-            const userRole = req.session.User?.role
-            const getRoleRedir = () => {
-                if (userRole === "productmanager") return "pm";
-                if (userRole === "developers") return "dev";
-                if (userRole === "technicallead") return "tl";
-            }
 
-            const role = getRoleRedir();
             await query(
                 `INSERT INTO UserGitHubIntegration (UserID, GitHubUsername, AccessToken)
                  VALUES (@userID, @GitHubUsername, @accessToken)`,
@@ -66,10 +59,10 @@ const githubAuthHandler = {
             )
 
             console.log("GitHub linked successfully:", GitHubUsername)
-            res.redirect(`http://localhost:3000/dashboard/${role}`)
+            return res.redirect(`http://localhost:3000/${req.session.User?.username}`)
         } catch (err: any) {
             console.error("GitHub OAuth Error:", err.response?.data || err.message)
-            res.status(500).json({ error: "GitHub authentication failed" })
+            return res.status(500).json({ error: "GitHub authentication failed" })
         }
     }
 }
