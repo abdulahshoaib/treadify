@@ -13,7 +13,7 @@ export const checkUsername = async (req: Request, res: Response) => {
               SELECT * FROM Users WHERE Username = @username
        `, { username })
 
-        if (existingUser.length > 0){
+        if (existingUser.length > 0) {
             console.log("Username exists");
             return res.status(200).json({ available: false })
         }
@@ -32,7 +32,7 @@ export const signup = async (req: Request, res: Response) => {
         const { FirstName, LastName, role, username, email, pass } = req.body
 
         if (!FirstName || !LastName || !role || !username || !email || !pass)
-            res.status(400).json({ error: "Invalid Input" })
+            return res.status(400).json({ error: "Invalid Input" })
 
         // hash the password
         const hash = await bcrypt.hash(pass, 10)
@@ -43,29 +43,50 @@ export const signup = async (req: Request, res: Response) => {
             { FirstName, LastName, username, email, hash }
         )
 
-        const userResult = await query(
-            `SELECT UserID FROM Users WHERE Username = @username`,
-            { username }
-        )
-
-        const UserID = userResult[0]?.UserID;
-
         const roleRes = await query(
             `SELECT RoleID FROM Roles WHERE Name = @role`,
             { role }
         )
 
         if (roleRes?.length === 0)
-            res.status(400).json({ error: "Invalid role" });
+            return res.status(400).json({ error: "Invalid role" });
 
         const RoleID = roleRes[0]?.RoleID;
 
-        await query(
-            `INSERT INTO UserRoles (UserID, RoleID) VALUES (@UserID, @RoleID)`,
-            { UserID, RoleID }
+        const userResult = await query(
+            `SELECT u.UserID, u.Username, u.Email
+            FROM Users u
+            WHERE u.Username = @username
+            `,
+            { username }
         )
 
-        res.status(201).json({ message: "User Created" })
+        if (userResult.length === 0)
+            return res.status(401).json({ error: "No User Found" })
+
+
+        const user = userResult[0]
+        const userID = user.UserID
+
+        await query(
+            `INSERT INTO UserRoles (UserID, RoleID) VALUES (@UserID, @RoleID)`,
+            { UserID: userID, RoleID }
+        )
+
+        if (!req.session)
+            return res.status(500).json({ error: "Session Error" });
+
+        req.session.User = {
+            id: user.UserID,
+            username: user.Username,
+            email: user.Email,
+            role: role,
+            product: null,
+            feature: null
+        }
+
+        return res.status(200).json({ message: "Signup and logged in" })
+
 
     } catch (err: any) {
         console.error(err.message)
