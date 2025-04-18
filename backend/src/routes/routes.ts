@@ -1,9 +1,10 @@
-import authRoutes from "./authRoutes.ts";
-import userRoutes from "./profileRoutes.ts";
-import productRoutes from "./productRoutes.ts";
-import featureRoutes from "./featureRoutes.ts";
-import progressRoutes from "./progressRoutes.ts";
-import messageRoutes from "./messagesRoutes.ts";
+import authRoutes from "./authRoutes.ts"
+import userRoutes from "./profileRoutes.ts"
+import productRoutes from "./productRoutes.ts"
+import featureRoutes from "./featureRoutes.ts"
+import progressRoutes from "./progressRoutes.ts"
+import messageRoutes from "./messagesRoutes.ts"
+import dashboardRoutes from "./dashboardRoutes.ts"
 
 export default {
     authRoutes,
@@ -11,5 +12,6 @@ export default {
     productRoutes,
     featureRoutes,
     progressRoutes,
-    messageRoutes
+    messageRoutes,
+    dashboardRoutes,
 }
