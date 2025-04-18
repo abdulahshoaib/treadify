@@ -13,4 +13,3 @@ router.get("/goals", Product.getChannelGoals as any);
 router.get("/report", Product.getChannelReport as any);
 
 export default router;
-
