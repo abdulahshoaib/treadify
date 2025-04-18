@@ -7,24 +7,24 @@ dotenv.config();
 
 const CLIENT_ID = process.env.CLIENT_ID
 const CLIENT_SECRET = process.env.CLIENT_SECRET
-const REDIRECT_URI = "http://localhost:3000/auth/github/callback"
+const REDIRECT_URI = "http://localhost:5000/auth/github/callback"
 
 const githubAuthHandler = {
     githubAuth: (req: Request, res: Response) => {
         if (!req.session.User)
-            res.status(401).json({ error: "Unautorized Access" })
+            return res.status(401).json({ error: "Unautorized Access" })
         const githubAuthURL = `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&scope=repo,user:email&redirect_uri=${REDIRECT_URI}`
         res.redirect(githubAuthURL)
     },
 
     githubCallback: async (req: Request, res: Response) => {
         if (!req.session.User)
-            res.status(401).json({ error: "Unautorized Access" })
+            return res.status(401).json({ error: "Unautorized Access" })
 
         const { code } = req.query
 
         if (!code) {
-            res.status(400).json({ error: "Missing GitHub code" })
+            return res.status(400).json({ error: "Missing GitHub code" })
         }
 
         try {
@@ -40,6 +40,7 @@ const githubAuthHandler = {
 
             const accessToken = tokenResponse.data.access_token
             if (!accessToken) {
+                console.log("Failed to get access token")
                 res.status(400).json({ error: "Failed to get GitHub access token" })
             }
 
@@ -49,16 +50,23 @@ const githubAuthHandler = {
 
             const { login: GitHubUsername } = userResponse.data
 
-            // TODO: Get the logged-in user's `userID` (Replace this with actual user authentication logic)
             const userID = req.session.User?.id
+            const userRole = req.session.User?.role
+            const getRoleRedir = () => {
+                if (userRole === "productmanager") return "pm";
+                if (userRole === "developers") return "dev";
+                if (userRole === "technicallead") return "tl";
+            }
 
+            const role = getRoleRedir();
             await query(
                 `INSERT INTO UserGitHubIntegration (UserID, GitHubUsername, AccessToken)
                  VALUES (@userID, @GitHubUsername, @accessToken)`,
                 { userID, GitHubUsername, accessToken }
             )
 
-            res.json({ message: "GitHub linked successfully", GitHubUsername })
+            console.log("GitHub linked successfully:", GitHubUsername)
+            res.redirect(`http://localhost:3000/dashboard/${role}`)
         } catch (err: any) {
             console.error("GitHub OAuth Error:", err.response?.data || err.message)
             res.status(500).json({ error: "GitHub authentication failed" })
