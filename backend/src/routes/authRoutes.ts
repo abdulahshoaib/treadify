@@ -1,14 +1,16 @@
 import { Router } from "express"
 import { Auth } from "../handlers/auth/authpackage.ts"
 
-const authRouter = Router();
+const authRouter = Router()
 
-authRouter.get("/checkUsername/:username", Auth.checkUsername);
-authRouter.post("/signup", Auth.signup);
-authRouter.post("/login", Auth.login);
-authRouter.post("/logout", Auth.logout);
-authRouter.get("/github", Auth.github.githubAuth);
-authRouter.get("/github/callback", Auth.github.githubCallback);
+authRouter.get("/checkUsername/:username", Auth.checkUsername as any)
+authRouter.post("/signup", Auth.signup as any)
+authRouter.post("/login", Auth.login as any)
+authRouter.post("/logout", Auth.logout as any)
+authRouter.post("/validateCode", Auth.validateCode as any)
+authRouter.post("/generateCode", Auth.generateCode as any)
+authRouter.get("/github", Auth.github.githubAuth as any)
+authRouter.get("/github/callback", Auth.github.githubCallback as any)
 
-export default authRouter;
+export default authRouter
 
