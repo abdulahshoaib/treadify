@@ -11,8 +11,9 @@ declare module "express-session" {
             id: number
             username: string
             email: string
-            feature: number
-            product: number
+            feature: number | null
+            product: number | null
+            channel: number | null
             role: string
         }
     }
