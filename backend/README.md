@@ -421,32 +421,6 @@ Deprecate the product channel.
 
 ---
 
-### `POST` /productchannel/invite
-Generate an invite code for the product-level channel.
-
-**Authentication Required:** Yes
-
-**Request Body:**
-None required; the request is authenticated based on the session.
-
-**Response (201):**
-```json
-{
-  "message": "nvite code generated successfully",
-  "inviteCode": "string (invite code)"
-}
-```
-
-**Error Responses:**
-- `400` - ProductID is required
-- `401` - Unauthorized Access
-- `403` - No role assigned
-- `403` - Insufficient Permissions
-- `404` - No product-level channel found
-- `500` - Database error
-
----
-
 ### `PATCH` /productchannel/features/deadline
 Update feature deadline.
 
@@ -986,3 +960,4 @@ Get admin statistics (admin-only).
 5. User can then link commits to goals in feature channels
 
 ## TODO
+Add 2 routes /auth/generateCode & /auth/validateCode
