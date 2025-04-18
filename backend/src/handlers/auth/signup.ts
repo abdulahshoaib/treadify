@@ -30,12 +30,19 @@ export const checkUsername = async (req: Request, res: Response) => {
 export const signup = async (req: Request, res: Response) => {
     try {
         const { FirstName, LastName, role, username, email, pass } = req.body
+        console.log("Signup data", req.body)
 
         if (!FirstName || !LastName || !role || !username || !email || !pass)
             return res.status(400).json({ error: "Invalid Input" })
 
         // hash the password
         const hash = await bcrypt.hash(pass, 10)
+
+        const getRoleRedir = () => {
+            if (role === "productmanager") return "Product Manager";
+            if (role === "developer") return "Developer";
+            if (role === "technicallead") return "Technical Lead";
+        }
 
         await query(
             `INSERT INTO Users (FirstName, LastName, Username, Email, Pass)
@@ -45,7 +52,7 @@ export const signup = async (req: Request, res: Response) => {
 
         const roleRes = await query(
             `SELECT RoleID FROM Roles WHERE Name = @role`,
-            { role }
+            { role: getRoleRedir() }
         )
 
         if (roleRes?.length === 0)
