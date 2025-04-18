@@ -24,8 +24,6 @@ export const login = async (req: Request, res: Response) => {
         if (user.length == 0)
             return res.status(401).json({ error: "No User Found" })
 
-        console.log("got data from the database", user)
-
         const validPassword = await bcrypt.compare(pass, user[0].Pass)
         if (!validPassword)
             return res.status(401).json({ error: "Invalid Password" })
@@ -44,8 +42,16 @@ export const login = async (req: Request, res: Response) => {
             role: user[0].Name
         }
 
-        return res.status(200).json({ message: "Login Successful" })
+        const getRoleRedir = () => {
+            if (user[0].Name === "productmanager") return "pm";
+            if (user[0].Name === "developers") return "dev";
+            if (user[0].Name === "technicallead") return "tl";
+        }
 
+        res.status(200).json({
+            message: "Login successful",
+            redirect: `http://localhost:3000/dashboard/${getRoleRedir()}`
+        })
     } catch (err: any) {
         console.log(err.message)
         return res.status(500).json({ error: "Internal Server Error" })
