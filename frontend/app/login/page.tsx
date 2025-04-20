@@ -2,20 +2,56 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ArrowRight, KeyRound, UserIcon } from "lucide-react"
+import { ArrowRight, KeyRound, UserIcon, Loader2, CheckCircle, XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { toast } from "sonner"
 
 export default function LoginPage() {
     const router = useRouter()
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
     const [isLoading, setIsLoading] = useState(false)
+    const [error, setError] = useState("")
+    const [available, setIsAvailable] = useState<boolean | null>(null)
+    const [checking, setChecking] = useState(false)
+
+    useEffect(() => {
+        if (!username) {
+            setIsAvailable(null)
+            return
+        }
+
+        const delay = setTimeout(async () => {
+            setChecking(true)
+            try {
+                const res = await fetch(`http://localhost:5000/auth/checkUsername/${username}`, {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json", },
+                    credentials: "include"
+                })
+
+                if (!res.ok) {
+                    setIsAvailable(true)
+                    return
+                }
+
+                const data = await res.json()
+                setIsAvailable(data.available)
+            } catch (err: any) {
+                console.error(err)
+            } finally {
+                setChecking(false)
+            }
+        }, 500)
+
+        return () => clearTimeout(delay)
+    }, [username])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -34,16 +70,20 @@ export default function LoginPage() {
             const data = await res.json()
 
             if (!res.ok) {
+                setError(data.error || "Login failed")
                 setIsLoading(false)
+                setPassword("")
             } else {
                 console.log(data.message)
                 router.push(data.redirect)
+                toast.success("Login successful")
             }
         } catch (err: any) {
             console.error("Login error:", err)
-            alert(err.message)
+            setError(err.message)
         } finally {
             setIsLoading(false)
+            setPassword("")
         }
     }
 
@@ -153,7 +193,7 @@ export default function LoginPage() {
             <div className="flex-1 flex items-center justify-center p-6 bg-slate-950">
                 <div className="w-full max-w-md">
                     <div className="text-center mb-8">
-                        <h2 className="text-3xl font-bold text-white mb-2">Welcome back</h2>
+                        <h2 className="text-3xl font-bold text-blue-300 mb-2">Welcome back</h2>
                         <p className="text-slate-400">Sign in to your Treadify account</p>
                     </div>
 
@@ -171,10 +211,24 @@ export default function LoginPage() {
                                             type="username"
                                             placeholder="username"
                                             value={username}
-                                            onChange={(e) => setUsername(e.target.value)}
+                                            onChange={(e) => {
+                                                const value = e.target.value
+                                                    .toLowerCase()
+                                                    .replace(/[^a-z0-9]/g, "")
+                                                setUsername(value)
+                                            }}
                                             required
                                             className="border-slate-800 bg-slate-950/50 text-white placeholder:text-slate-500 focus:border-indigo-500 focus:ring-indigo-500 pr-10 h-12"
                                         />
+                                        <div className="absolute inset-y-0 right-3 flex items-center">
+                                            {checking ? (
+                                                <Loader2 className="h-5 w-5 animate-spin text-cyan-400" />
+                                            ) : available === false ? (
+                                                <CheckCircle className="h-5 w-5 text-green-500" />
+                                            ) : available === true ? (
+                                                <XCircle className="h-5 w-5 text-red-500" />
+                                            ) : null}
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="space-y-2">
@@ -183,9 +237,6 @@ export default function LoginPage() {
                                             <KeyRound className="h-4 w-4 text-slate-400" />
                                             Password
                                         </Label>
-                                        <Link href="/forgot-password" className="text-xs text-indigo-400 hover:text-indigo-300">
-                                            Forgot password?
-                                        </Link>
                                     </div>
                                     <div className="relative">
                                         <Input
@@ -194,9 +245,15 @@ export default function LoginPage() {
                                             placeholder="password"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
+                                            disabled={isLoading || available === null || available}
                                             required
                                             className="border-slate-800 bg-slate-950/50 text-white placeholder:text-slate-500 focus:border-indigo-500 focus:ring-indigo-500 pr-10 h-12"
                                         />
+                                        {error && (
+                                            <div className="text-sm text-red-500 mt-2 ml-2">
+                                            {error}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </CardContent>
@@ -204,7 +261,7 @@ export default function LoginPage() {
                                 <Button
                                     type="submit"
                                     className="w-full h-12 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium rounded-lg"
-                                    disabled={isLoading}
+                                    disabled={isLoading || available || !password}
                                 >
                                     {isLoading ? (
                                         <div className="flex items-center justify-center">
