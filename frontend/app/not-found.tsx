@@ -25,14 +25,14 @@ export default function NotFound() {
           <h2 className="text-2xl font-semibold text-white">Page Not Found</h2>
 
           <p className="text-slate-400">
-            The page you're looking for doesn't exist or has been moved. Check the URL or return to the dashboard.
+            Oops! Seems like the page you're looking for doesn't exist or has been moved. Check the URL or return to Home
           </p>
 
           <div className="pt-6">
             <Link href="/">
               <Button className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white border-0 shadow-lg shadow-blue-900/20 px-6 py-6">
                 <Home className="mr-2 h-5 w-5" />
-                Return to Dashboard
+                Return to Home
               </Button>
             </Link>
           </div>
