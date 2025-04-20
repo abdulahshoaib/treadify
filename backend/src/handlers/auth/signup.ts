@@ -6,6 +6,7 @@ import { query } from "../../database/query.ts"
 export const checkUsername = async (req: Request, res: Response) => {
     try {
         const { username } = req.params
+
         if (!username)
             return res.status(400).json({ error: "Invalid Input" })
 
@@ -13,12 +14,9 @@ export const checkUsername = async (req: Request, res: Response) => {
               SELECT * FROM Users WHERE Username = @username
        `, { username })
 
-        if (existingUser.length > 0) {
-            console.log("Username exists");
+        if (existingUser.length > 0)
             return res.status(200).json({ available: false })
-        }
 
-        console.log("Username is available");
         return res.status(200).json({ available: true })
 
     } catch (err: any) {
