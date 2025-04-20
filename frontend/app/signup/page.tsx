@@ -36,9 +36,7 @@ export default function SignupPage() {
             try {
                 const res = await fetch(`http://localhost:5000/auth/checkUsername/${username}`, {
                     method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
+                    headers: { "Content-Type": "application/json", },
                     credentials: "include"
                 })
 
