@@ -961,3 +961,4 @@ Get admin statistics (admin-only).
 
 ## TODO
 Add 2 routes /auth/generateCode & /auth/validateCode
+Add documentation for route /user/:username/repos
