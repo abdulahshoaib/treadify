@@ -38,11 +38,11 @@ app.use(cors({
 }))
 app.use(
     session({
-        secret,
+        secret: secret,
         resave: false,
         saveUninitialized: false,
         cookie: {
-            secure: false,
+            secure: process.env.NODE_ENV === "production",
             httpOnly: true,
             sameSite: "lax",
             maxAge: 1000 * 60 * 60 * 12, //valid for 12 hours
@@ -55,8 +55,8 @@ app.use("/user", Routes.userRoutes)
 app.use("/productchannel", Routes.productRoutes)
 app.use("/featurechannel", Routes.featureRoutes)
 app.use("/progress", Routes.progressRoutes)
-app.use("/messages", Routes.messageRoutes)
 app.use("/dashboard", Routes.dashboardRoutes)
+app.use("/messages", Routes.messageRoutes)
 
 
 app.listen(port, () => {
