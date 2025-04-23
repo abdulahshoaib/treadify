@@ -76,10 +76,10 @@ const getUserProfile = async (req: Request, res: Response) => {
 
         return res.json({
             message: `User profile for ${username}`,
-                name: name,
-                role: role,
-                email: email,
-                ghusername: ghusername
+            name: name,
+            role: role,
+            email: email,
+            ghusername: ghusername
         })
     } catch (err: any) {
         return res.status(500).json({ error: err.message })
