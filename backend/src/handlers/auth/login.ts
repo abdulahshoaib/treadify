@@ -11,6 +11,13 @@ export const login = async (req: Request, res: Response) => {
             return res.status(400).json({ error: "Invalid Input" })
         }
 
+        if (req.session.User?.username == username)
+        return res.status(200).json({
+            message: "Login successful",
+            sessionID: req.session.User?.id,
+            redirect: `http://localhost:3000/${username}`,
+        })
+
         const authLogin = `
             SELECT u.UserID, u.Username, u.Email, u.Pass, cm.ProductID, cm.FeatureID, r.Name
             FROM Users u
@@ -61,17 +68,13 @@ export const login = async (req: Request, res: Response) => {
             role: user[0].Name
         }
 
-        req.session.save((err) => {
-            if (err) {
-                return res.status(500).json({ error: "Session Error" });
-            }
-
-            return res.status(200).json({
-                message: "Login successful",
-                redirect: `http://localhost:3000/${username}`,
-            })
-
+        console.log("New User session: " + req.session.User?.product + req.session.User?.username)
+        return res.status(200).json({
+            message: "Login successful",
+            sessionID: req.session.User?.id,
+            redirect: `http://localhost:3000/${username}`,
         })
+
     } catch (err: any) {
         return res.status(500).json({ error: "Internal Server Error" })
     }
