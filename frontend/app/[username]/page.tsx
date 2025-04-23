@@ -10,7 +10,7 @@ type Repo = {
     name: string
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({params}: {params: {username: string}}) {
     const headerList = await headers()
     const cookie = headerList.get("cookie") || ""
 
@@ -23,20 +23,21 @@ export default async function DashboardPage() {
         },
     })
 
-    if (!dashboardRes.ok) {
-        if (dashboardRes.status === 401) {
-            redirect("/login")
-        }
-        throw new Error("Server Error " + dashboardRes.status) as any
-    }
-    console.log("dashboardRes: " + dashboardRes.status)
-
     const data = await dashboardRes.json()
+    const loggedInUser = data.username
+
+    if (!dashboardRes.ok) {
+        throw new Error(" " + data.username +  data.error) as any
+    }
+
+    if(params.username !==loggedInUser)
+        notFound()
+
     if (!dashboardRes.ok) console.log("data: " + data.error)
+
 
     let repos: Repo[] = []
     if (data.role === "Product Manager") {
-        // fetch the userRepos
         const repoRes = await fetch(`http://localhost:5000/user/repos`, {
             method: "GET",
             headers: {
@@ -46,9 +47,14 @@ export default async function DashboardPage() {
         })
         if (!repoRes.ok) {
             if (repoRes.status === 401) {
-                redirect("/login")
+                redirect('/login')
             }
+            if(repoRes.status === 404){
+
+            }
+            else {
             throw new Error("Server Error " + repoRes.status) as any
+            }
         }
 
         const repoData = await repoRes.json()
