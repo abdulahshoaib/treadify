@@ -9,14 +9,14 @@ const createFeatureGoals = async (req: Request, res: Response) => {
 
     const role = req.session.User?.role as string
 
-    if(!role)
-        res.status(403).json({error: "No role assigned in session"})
+    if (!role)
+        res.status(403).json({ error: "No role assigned in session" })
 
     const permissionReq = "createFeatureGoals"
     const hasPermRes = await hasPermission(role, permissionReq)
 
-    if(!hasPermRes)
-        res.status(403).json({error: "Insufficent Permission"})
+    if (!hasPermRes)
+        res.status(403).json({ error: "Insufficent Permission" })
 
     try {
         const FeatureID = req.session.User?.feature
@@ -48,14 +48,14 @@ const commitToGoal = async (req: Request, res: Response) => {
 
     const role = req.session.User?.role as string
 
-    if(!role)
-        res.status(403).json({error: "No role assigned in session"})
+    if (!role)
+        res.status(403).json({ error: "No role assigned in session" })
 
     const permissionReq = "commitToGoal"
     const hasPermRes = await hasPermission(role, permissionReq)
 
-    if(!hasPermRes)
-        res.status(403).json({error: "Insufficent Permission"})
+    if (!hasPermRes)
+        res.status(403).json({ error: "Insufficent Permission" })
 
     try {
         const DevID = req.session.User?.id
@@ -184,22 +184,46 @@ const getFeatureMembers = async (req: Request, res: Response) => {
 
 const getFeatureGoals = async (req: Request, res: Response) => {
     if (!req.session.User)
-        res.status(401).json({ error: "Unauthorized Access" })
-
-    // no need for RBAC all users can get
+        return res.status(401).json({ error: "Unauthorized Access" })
 
     try {
         const FeatureID = req.session.User?.feature
 
         if (!FeatureID)
-            res.status(403).json({ error: "No feature assigned in session" })
+            return res.status(200).json({ error: "User is not part of any feature channel", data: [] })
 
-        const result = await query("SELECT * FROM Goals WHERE FeatureID = @FeatureID", { FeatureID })
+        const result = await query(`
+            SELECT
+                g.GoalID as id,
+                g.Name as GoalName,
+                g.Description,
+                CONVERT(VARCHAR(10), g.Deadline, 120) as Deadline,
+                CONVERT(VARCHAR(10), g.CompletedAt, 120) as CompletedAt,
+                g.Status,
+                u.FirstName + ' ' + u.LastName as CreatedBy,
+                f.Name as FeatureName
+            FROM Goals g
+            JOIN Users u ON g.CreatedByID = u.UserID
+            JOIN Features f ON g.FeatureID = f.FeatureID
+            WHERE g.FeatureID = @FeatureID
+        `, { FeatureID })
 
-        res.json({ message: `Goals for feature ${FeatureID}`, data: result })
+        return res.json({
+            data: result.map(goal => ({
+                id: goal.id,
+                GoalName: goal.GoalName,
+                Description: goal.Description,
+                Deadline: goal.Deadline,
+                CompletedAt: goal.CompletedAt,
+                Status: goal.Status,
+                CreatedBy: goal.CreatedBy,
+                FeatureName: goal.FeatureName,
+
+            }))
+        })
     } catch (err: any) {
         console.error(err.message)
-        res.status(500).json({ error: err.message })
+        return res.status(500).json({ error: err.message })
     }
 }
 
@@ -209,14 +233,14 @@ const updateCommit = async (req: Request, res: Response) => {
 
     const role = req.session.User?.role as string
 
-    if(!role)
-        res.status(403).json({error: "No role assigned in session"})
+    if (!role)
+        res.status(403).json({ error: "No role assigned in session" })
 
     const permissionReq = "updateCommit"
     const hasPermRes = await hasPermission(role, permissionReq)
 
-    if(!hasPermRes)
-        res.status(403).json({error: "Insufficent Permission"})
+    if (!hasPermRes)
+        res.status(403).json({ error: "Insufficent Permission" })
 
     try {
         const { commitID } = req.params
