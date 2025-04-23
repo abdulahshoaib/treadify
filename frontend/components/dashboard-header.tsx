@@ -93,7 +93,7 @@ export default function DashboardHeader({ username, userName, userRole }: Dashbo
                 roles: ["Technical Lead", "Developer"],
             },
             {
-                name: "Reports",
+                name: "Report",
                 href: `/${username}/report`,
                 icon: <BarChart className="mr-1 h-4 w-4" />,
                 roles: ["Product Manager"],
