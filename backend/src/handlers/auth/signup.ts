@@ -19,8 +19,8 @@ export const checkUsername = async (req: Request, res: Response) => {
 
         return res.status(200).json({ available: true })
 
-    } catch (err: any) {
-        console.error(err.message)
+    } catch (error: any) {
+        console.error(error.message)
         return res.status(500).json({ error: "Internal Server Error" })
     }
 }
@@ -28,7 +28,6 @@ export const checkUsername = async (req: Request, res: Response) => {
 export const signup = async (req: Request, res: Response) => {
     try {
         const { FirstName, LastName, role, username, email, pass } = req.body
-        console.log("Signup data", req.body)
 
         if (!FirstName || !LastName || !role || !username || !email || !pass)
             return res.status(400).json({ error: "Invalid Input" })
@@ -86,6 +85,7 @@ export const signup = async (req: Request, res: Response) => {
             username: user.Username,
             email: user.Email,
             role: role,
+            channel: null,
             product: null,
             feature: null
         }
@@ -93,8 +93,8 @@ export const signup = async (req: Request, res: Response) => {
         return res.status(200).json({ message: "Signup and logged in" })
 
 
-    } catch (err: any) {
-        console.error(err.message)
+    } catch (error: any) {
+        console.error(error.message)
         res.status(500).json({ error: "Internal Server Error" })
     }
 }
