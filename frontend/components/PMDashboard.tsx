@@ -123,7 +123,7 @@ export default function PMDashboard({ repos }: PMDashboardProps) {
                                 <DialogFooter>
                                     <Button
                                         variant="outline"
-                                        onSubmit={() => setIsDialogOpen(false)}
+                                        onClick={()=>setIsDialogOpen(false)}
                                         className="border-slate-800 bg-transparent text-white hover:bg-red-900/30 hover:text-red-500 hover:border-red-700 select-none"
                                     >
                                         Cancel
