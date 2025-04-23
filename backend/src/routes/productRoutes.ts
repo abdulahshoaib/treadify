@@ -4,6 +4,7 @@ import Product from "../handlers/product/product.ts"
 const router = Router()
 
 router.post("/", Product.createProductChannel as any)
+router.get("/", Product.getChannelDetails as any)
 router.get("/features", Product.getFeatures as any)
 router.post("/features", Product.addFeature as any)
 router.patch("/deprecate", Product.deprecateChannel as any)
