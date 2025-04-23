@@ -66,13 +66,10 @@ const getUserProfile = async (req: Request, res: Response) => {
         if (!result.length)
             return res.status(404).json({ error: "User not found" })
 
-        console.log(result)
         const name = result[0].FirstName + " " + result[0].LastName
         const role = result[0].Name
         const email = result[0].Email
         const ghusername = result[0].GitHubUsername
-
-        console.log("\n\n", name, role, email, ghusername)
 
         return res.json({
             message: `User profile for ${username}`,
