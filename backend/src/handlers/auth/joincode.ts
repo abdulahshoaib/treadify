@@ -5,6 +5,7 @@ import { query } from "../../database/query.ts"
 export const validateCode = async (req: Request, res: Response) => {
     if (!req.session)
         return res.status(401).json({ error: "Unauthorized" })
+
     try {
         const { code } = req.body.code
 
