@@ -3,11 +3,39 @@ import { redirect, notFound } from "next/navigation"
 
 import FeaturesClient from "./features-client"
 
-export default async function GoalsPage({ params }: { params: { username: string } }) {
+export default async function FeaturesPage({ params }: { params: { username: string } }) {
     const headerList = await headers()
     const cookie = headerList.get("cookie") || ""
 
-    // get TLs
+    const dashboardRes = await fetch(`http://localhost:5000/dashboard`, {
+        method: "GET",
+        headers: {
+            Accept: "application/json",
+            Cookie: cookie,
+        },
+    })
+
+    if (!dashboardRes.ok) {
+        if (dashboardRes.status === 401) {
+            redirect("/login")
+        }
+        throw new Error("Server Error " + dashboardRes.status)
+    }
+
+    const data = await dashboardRes.json()
+    const loggedInUsername = data.username
+    const role = data.role
+
+    const param = await params
+    if (param.username !== loggedInUsername) {
+        redirect(`/${loggedInUsername}`)
+    }
+
+    if (role !== "Product Manager" && role !== "Technical Lead") {
+        notFound()
+    }
+
+    // GET TLs
     const TLRes = await fetch(`http://localhost:5000/productchannel/tl`, {
         method: "GET",
         headers: {
@@ -42,41 +70,13 @@ export default async function GoalsPage({ params }: { params: { username: string
     console.log("Features: ", featData)
 
 
-    const dashboardRes = await fetch(`http://localhost:5000/dashboard`, {
-        method: "GET",
-        headers: {
-            Accept: "application/json",
-            Cookie: cookie,
-        },
-    })
 
-    if (!dashboardRes.ok) {
-        if (dashboardRes.status === 401) {
-            redirect("/login")
-        }
-        throw new Error("Server Error " + dashboardRes.status)
-    }
-
-    const data = await dashboardRes.json()
-    const loggedInUsername = data.username
-    const role = data.role
-
-    const param = await params
-    if (param.username !== loggedInUsername) {
-        redirect(`/${loggedInUsername}`)
-    }
-
-    if (role !== "Product Manager" && role !== "Technical Lead") {
-        notFound()
-    }
-
+    const tlData = TLData.data
     const featureData = featData.data
 
     return (
         <main className="relative z-10 flex-1 p-5">
-
-            <FeaturesClient initialFeatures={featureData} />
-
+            <FeaturesClient initialFeatures={featureData} TechLeads={tlData} />
         </main>
     )
 }
