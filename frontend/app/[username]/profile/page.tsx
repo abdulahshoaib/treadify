@@ -1,6 +1,6 @@
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
-import ProfileClient from "@/components/profile-client"
+import ProfileClient from "./profile-client"
 
 export default async function ProfilePage() {
     const headerList = await headers()
@@ -24,11 +24,6 @@ export default async function ProfilePage() {
     const data = await res.json()
 
     console.log(data)
-
-    console.log("name: " + data.name)
-    console.log("email: " + data.email)
-    console.log("role: " + data.role)
-    console.log("GHusername: " + data.ghusername)
 
     return <ProfileClient initialData={data}/>
 }
