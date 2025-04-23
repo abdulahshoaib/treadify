@@ -6,6 +6,23 @@ export default async function ReportPage({ params }: { params: { username: strin
     const headerList = await headers()
     const cookie = headerList.get("cookie") || ""
 
+    const progressRes = await fetch(`http://localhost:5000/progress/productchannel`, {
+        method: "GET",
+        headers: {
+            Accept: "application/json",
+            Cookie: cookie,
+        },
+    })
+    if (!progressRes.ok) {
+        if (progressRes.status === 401)
+            redirect("/login")
+        throw new Error("Server Error " + progressRes.status)
+    }
+    const progressData = await progressRes.json()
+    const progress = progressData.data
+
+    console.log(progress)
+
     const dashboardRes = await fetch(`http://localhost:5000/dashboard`, {
         method: "GET",
         headers: {
@@ -13,19 +30,18 @@ export default async function ReportPage({ params }: { params: { username: strin
             Cookie: cookie,
         },
     })
-
     if (!dashboardRes.ok) {
         if (dashboardRes.status === 401) {
             redirect("/login")
         }
         throw new Error("Server Error " + dashboardRes.status)
     }
-
     const data = await dashboardRes.json()
     const loggedInUsername = data.username
     const role = data.role
 
-    if (params.username !== loggedInUsername) {
+    const param = await params
+    if (param.username !== loggedInUsername) {
         redirect(`/${loggedInUsername}`)
     }
 
@@ -34,13 +50,8 @@ export default async function ReportPage({ params }: { params: { username: strin
     }
 
     return (
-        <main className="relative z-10 flex-1 p-6">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-400">
-                    Reports
-                </h1>
-            </div>
-            <ReportClient />
+        <main className="relative z-10 flex-1">
+            <ReportClient featureData={progress} />
         </main>
     )
 }
