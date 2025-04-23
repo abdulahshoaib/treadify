@@ -12,7 +12,6 @@ export async function createProductChannel(
     })
 
     const data = await res.json()
-    console.log("DATA: " + data)
 
     if (!res.ok) {
         if (res.status === 401) {
