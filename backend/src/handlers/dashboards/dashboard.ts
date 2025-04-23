@@ -22,10 +22,11 @@ export const getDashboard = async (req: Request, res: Response) => {
             return res.status(401).json({ error: "No User Found" })
         }
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             role: userRes[0].Name,
-            username: userRes[0].Username
+            username: userRes[0].Username,
+            productID: req.session.User?.product
         });
 
     } catch (err: any) {
