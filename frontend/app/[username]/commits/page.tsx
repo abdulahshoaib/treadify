@@ -26,7 +26,8 @@ export default async function CommitsPage({ params }: { params: { username: stri
     const loggedInUsername = data.username
     const role = data.role
 
-    if (params.username !== loggedInUsername) {
+    const param = await params
+    if (param.username !== loggedInUsername) {
         redirect(`/${loggedInUsername}`)
     }
 
