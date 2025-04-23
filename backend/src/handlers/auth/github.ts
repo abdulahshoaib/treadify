@@ -40,7 +40,6 @@ const githubAuthHandler = {
 
             const accessToken = tokenResponse.data.access_token
             if (!accessToken) {
-                console.log("Failed to get access token")
                 return res.status(400).json({ error: "Failed to get GitHub access token" })
             }
 
@@ -58,7 +57,6 @@ const githubAuthHandler = {
                 { userID, GitHubUsername, accessToken }
             )
 
-            console.log("GitHub linked successfully:", GitHubUsername)
             return res.redirect(`http://localhost:3000/${req.session.User?.username}`)
         } catch (err: any) {
             console.error("GitHub OAuth Error:", err.response?.data || err.message)
