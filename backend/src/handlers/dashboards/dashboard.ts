@@ -13,7 +13,7 @@ export const getDashboard = async (req: Request, res: Response) => {
             FROM Users u
             LEFT JOIN UserRoles ur ON u.UserID = ur.UserID
             LEFT JOIN Roles r ON ur.RoleID = r.RoleID
-            JOIN UserGitHubIntegration ug ON u.UserID = ug.UserID
+            LEFT JOIN UserGitHubIntegration ug ON u.UserID = ug.UserID
             WHERE u.Username = @username`,
             { username }
         )
@@ -25,6 +25,7 @@ export const getDashboard = async (req: Request, res: Response) => {
         res.status(200).json({
             success: true,
             role: userRes[0].Name,
+            username: userRes[0].Username
         });
 
     } catch (err: any) {
