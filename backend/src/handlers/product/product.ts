@@ -10,10 +10,7 @@ const createProductChannel = async (req: Request, res: Response) => {
     const role = req.session.User?.role as string
     if (!role)
         return res.status(403).json({ error: "No role assigned in session" })
-    const permissionReq = "create_product"
-    const hasPermRes = await hasPermission(role, permissionReq)
-    if (!hasPermRes)
-        return res.status(403).json({ error: "Insufficent Permission" })
+
     try {
         const PMID = req.session.User?.id
         const { Name, RepoName, Deadline } = req.body
@@ -191,6 +188,28 @@ const getChannelDeadline = async (req: Request, res: Response) => {
     }
 }
 
+const getTL = async (req: Request, res: Response) => {
+    if (!req.session.User)
+        return res.status(401).json({ error: "Unauthorized Access" })
+    try {
+        const ProductID = req.session.User?.product
+
+        const result = await query(
+            `SELECT u.FirstName, u.LastName, u.UserID
+             FROM Users u
+             JOIN ChannelMembers cm ON u.UserID = cm.UserID
+             WHERE cm.ProductID = @ProductID AND Role = 'TL'`, // role 1003 -> TL
+            { ProductID }
+        )
+
+        console.log(result)
+        return res.json({ data: result })
+    } catch (error: any) {
+        console.error(error.message)
+        return res.status(500).json({ error: error.message })
+    }
+}
+
 const getChannelMembers = async (req: Request, res: Response) => {
     if (!req.session.User)
         return res.status(401).json({ error: "Unauthorized Access" })
@@ -271,6 +290,47 @@ const getChannelReport = async (req: Request, res: Response) => {
     }
 }
 
+const getFeatures = async (req: Request, res: Response) => {
+    if (!req.session.User)
+        return res.status(401).json({ error: "Unauthorized Access" })
+
+    try {
+        const ProductID = req.session.User?.product
+
+        console.log(ProductID)
+        const result = await query(`
+            SELECT
+            CONCAT('feature-', F.FeatureID) AS id,
+            F.Name,
+            CONVERT(VARCHAR, F.Deadline, 23) AS deadline,
+            COUNT(G.GoalID) AS totalGoals,
+            SUM(CASE WHEN G.Status = 'completed' THEN 1 ELSE 0 END) AS completedGoals,
+            CAST(CASE
+                    WHEN COUNT(G.GoalID) = 0 THEN 0
+                    ELSE (SUM(CASE WHEN G.Status = 'completed' THEN 1 ELSE 0 END) * 100.0 / COUNT(G.GoalID))
+                    END AS INT
+                ) AS progress
+            FROM Features F
+            LEFT JOIN Goals G ON F.FeatureID = G.FeatureID
+            LEFT JOIN Products P on P.ProductID = F.ProductID
+            WHERE P.ProductID = @ProductID
+            GROUP BY F.FeatureID, F.Name, F.Deadline`,
+            { ProductID }
+        );
+
+        console.log(result)
+
+        if (!result.length) {
+            return res.status(404).json({ error: "Channel not found" })
+        }
+
+        res.json({ message: `Report for channel ${ProductID}`, data: result })
+    } catch (error: any) {
+        console.error(error.message)
+        return res.status(500).json({ error: error.message })
+    }
+}
+
 export default {
     createProductChannel,
     addFeature,
@@ -280,4 +340,6 @@ export default {
     getChannelGoals,
     getChannelMembers,
     getChannelReport,
+    getFeatures,
+    getTL
 }
