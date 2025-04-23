@@ -4,47 +4,46 @@ import { hasPermission } from "../RABC.ts"
 
 const getProductProgress = async (req: Request, res: Response) => {
     if (!req.session.User)
-        res.status(401).json({ error: "Unauthorized Access" })
-
-    const role = req.session.User?.role as string
-
-    if(!role)
-        res.status(403).json({error: "No role assigned in session"})
-
-    const permissionReq = "getProductProgress"
-    const hasPermRes = await hasPermission(role, permissionReq)
-
-    if(!hasPermRes)
-        res.status(403).json({error: "Insufficent Permission"})
+        return res.status(401).json({ error: "Unauthorized Access" })
 
     try {
         const ProductID = req.session.User?.product
 
         if (!ProductID)
-            res.status(400).json({ error: "Product ID is required" })
+            return res.status(400).json({ error: "Product ID is required" })
 
 
         const result = await query(
             `SELECT
-                p.ProductID,
-                p.Name AS ProductName,
-                COUNT(f.FeatureID) AS TotalFeatures,
-                SUM(CASE WHEN f.Status = 'completed' THEN 1 ELSE 0 END) AS CompletedFeatures,
-                (SUM(CASE WHEN f.Status = 'completed' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(f.FeatureID), 0) AS ProgressPercentage
-            FROM Products p
-            LEFT JOIN Features f ON p.ProductID = f.ProductID
-            WHERE p.ProductID = @ProductID
-            GROUP BY p.ProductID, p.Name`,
+                  F.FeatureID AS id,
+                  F.Name AS name,
+                  FORMAT(F.Deadline, 'yyyy-MM-ddTHH:mm:ss') AS deadline,
+                  COUNT(G.GoalID) AS totalGoals,
+                  SUM(CASE WHEN G.Status = 'completed' THEN 1 ELSE 0 END) AS completedGoals,
+                  CASE
+                      WHEN COUNT(G.GoalID) = 0 THEN 0
+                      ELSE CAST(SUM(CASE WHEN G.Status = 'completed' THEN 1 ELSE 0 END) * 100.0 / COUNT(G.GoalID) AS INT)
+                  END AS progress
+              FROM
+                  Features F
+              LEFT JOIN
+                  Goals G ON F.FeatureID = G.FeatureID
+              WHERE
+                  F.ProductID = @ProductID
+              GROUP BY
+                  F.FeatureID, F.Name, F.Deadline
+              ORDER BY
+                  F.Deadline`,
             { ProductID }
         )
 
         if (!result.length)
-            res.status(404).json({ error: "No progress found for this product" })
+            return res.status(404).json({ error: "No progress found for this product" })
 
-        res.json({ message: `Progress for product ${ProductID}`, data: result[0] })
+        return res.json({ message: `Progress for product ${ProductID}`, data: result })
     } catch (err: any) {
         console.error(err.message)
-        res.status(500).json({ error: err.message })
+        return res.status(500).json({ error: err.message })
     }
 }
 
@@ -54,14 +53,14 @@ const getFeatureProgress = async (req: Request, res: Response) => {
 
     const role = req.session.User?.role as string
 
-    if(!role)
-        res.status(403).json({error: "No role assigned in session"})
+    if (!role)
+        res.status(403).json({ error: "No role assigned in session" })
 
     const permissionReq = "getFeatureProgress"
     const hasPermRes = await hasPermission(role, permissionReq)
 
-    if(!hasPermRes)
-        res.status(403).json({error: "Insufficent Permission"})
+    if (!hasPermRes)
+        res.status(403).json({ error: "Insufficent Permission" })
 
     try {
         const FeatureID = req.session.User?.feature
@@ -101,14 +100,14 @@ const getCommitStatus = async (req: Request, res: Response) => {
 
     const role = req.session.User?.role as string
 
-    if(!role)
-        res.status(403).json({error: "No role assigned in session"})
+    if (!role)
+        res.status(403).json({ error: "No role assigned in session" })
 
     const permissionReq = "getCommitStatus"
     const hasPermRes = await hasPermission(role, permissionReq)
 
-    if(!hasPermRes)
-        res.status(403).json({error: "Insufficent Permission"})
+    if (!hasPermRes)
+        res.status(403).json({ error: "Insufficent Permission" })
 
     try {
         const { goalID } = req.params
@@ -138,14 +137,14 @@ const getActiveFeature = async (req: Request, res: Response) => {
 
     const role = req.session.User?.role as string
 
-    if(!role)
-        res.status(403).json({error: "No role assigned in session"})
+    if (!role)
+        res.status(403).json({ error: "No role assigned in session" })
 
     const permissionReq = "getActiveFeature"
     const hasPermRes = await hasPermission(role, permissionReq)
 
-    if(!hasPermRes)
-        res.status(403).json({error: "Insufficent Permission"})
+    if (!hasPermRes)
+        res.status(403).json({ error: "Insufficent Permission" })
 
     try {
         const ProductID = req.session.User?.product
@@ -176,14 +175,14 @@ const getGoalStatus = async (req: Request, res: Response) => {
 
     const role = req.session.User?.role as string
 
-    if(!role)
-        res.status(403).json({error: "No role assigned in session"})
+    if (!role)
+        res.status(403).json({ error: "No role assigned in session" })
 
     const permissionReq = "getGoalStatus"
     const hasPermRes = await hasPermission(role, permissionReq)
 
-    if(!hasPermRes)
-        res.status(403).json({error: "Insufficent Permission"})
+    if (!hasPermRes)
+        res.status(403).json({ error: "Insufficent Permission" })
 
     try {
         const FeatureID = req.session.User?.feature
@@ -214,14 +213,14 @@ const getCommitOverview = async (req: Request, res: Response) => {
 
     const role = req.session.User?.role as string
 
-    if(!role)
-        res.status(403).json({error: "No role assigned in session"})
+    if (!role)
+        res.status(403).json({ error: "No role assigned in session" })
 
     const permissionReq = "getCommitOverview"
     const hasPermRes = await hasPermission(role, permissionReq)
 
-    if(!hasPermRes)
-        res.status(403).json({error: "Insufficent Permission"})
+    if (!hasPermRes)
+        res.status(403).json({ error: "Insufficent Permission" })
 
     try {
         const FeatureID = req.session.User?.feature
