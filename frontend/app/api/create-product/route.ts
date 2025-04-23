@@ -25,7 +25,7 @@ export async function POST(req: Request) {
 
         console.log("Backend response status:", res.status);
         const data = await res.json();
-        console.log("Backend response data:", data.error);
+        console.log("Backend response data:", data);
 
         if (!res.ok) {
             console.error("Error from backend:", data);
