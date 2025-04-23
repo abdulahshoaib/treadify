@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Code, Github } from "lucide-react"
+import { Code } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -11,41 +11,20 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
+    DialogTrigger
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import Link from "next/link"
+import { toast } from "sonner"
 
 export default function DevDashboard() {
     const [productChannel, setProductChannel] = useState(null)
     const [joinCode, setJoinCode] = useState("")
-    const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false)
+    const [isDialogOpen, setIsDialogOpen] = useState(false)
 
-   // const handleJoinChannel = async () => {
-   //     try {
-   //         const res = await fetch(`http://localhost:5000/auth/validateCode`, {
-   //             method: "POST",
-   //             headers: { "Content-Type": "application/json" },
-   //             body: JSON.stringify({ code: joinCode }),
-   //             credentials: "include",
-   //         })
-
-   //         const data = await res.json()
-
-   //         if (!res.ok)
-   //             alert("Invalid join code. Please check and try again.")
-
-   //         // set the user dashboard
-   //         else {
-   //             setIsJoinDialogOpen(false)
-   //         }
-
-   //         setJoinCode("")
-   //     } catch (error) {
-   //         console.error("Error joining channel:", error)
-   //         alert("Failed to join channel. Please try again.")
-   //     }
-   // }
+    const handleJoinChannel = () => {
+        toast.success(<div className="select-none"> Join Code: {joinCode} </div>)
+    }
 
     return (
 
@@ -64,16 +43,59 @@ export default function DevDashboard() {
                             You haven't been assigned to any feature channel yet. Join a channel using a join code from your
                             Technical Lead.
                         </p>
-                        <Button
-                            className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white border-0 shadow-lg shadow-blue-900/20 px-8 py-6 text-lg"
-                            onClick={() => setIsJoinDialogOpen(true)}
-                        >
-                            <Code className="mr-2 h-5 w-5" />
-                            Join Channel
-                        </Button>
+                        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen} >
+                            <DialogTrigger asChild>
+                                <Button className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white border-0 shadow-lg shadow-blue-900/20 px-8 py-6 text-lg tracking-tighter">
+                                    <Code className="mr-2 h-5 w-5" />
+                                    Join Channel
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent
+                                onEscapeKeyDown={(e) => { e.preventDefault() }}
+                                className="border-none bg-slate-950/50 backdrop-blur-xl text-white shadow-xl shadow-purple-900/10 pointer-events-auto"
+                            >
+                                <DialogHeader>
+                                    <DialogTitle className="text-xl text-white tracking-tighter">Join Product Channel</DialogTitle>
+                                    <DialogDescription className="text-slate-400 tracking tight">
+                                        Enter the join code provided by your Technical Lead or Product Manager
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="name" className="text-slate-300">
+                                        Join Code
+                                    </Label>
+                                    <Input
+                                        id="code"
+                                        placeholder="Enter Join Code"
+                                        onChange={(e) => setJoinCode(e.target.value)}
+                                        className="border-slate-800/50 bg-slate-900/50 text-white focus:border-cyan-500 focus:ring-cyan-500"
+                                    />
+                                </div>
+
+                                <DialogFooter>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setIsDialogOpen(false)}
+                                        className="border-slate-800 bg-transparent text-white hover:bg-red-900/30 hover:text-red-500 hover:border-red-700 select-none"
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white border-0 shadow-lg shadow-blue-900/20 tracking-tighter"
+                                        onClick={handleJoinChannel}
+                                        disabled={!joinCode}
+                                    >
+                                        Join
+                                    </Button>
+
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
                     </div>
                 </div>
+
             )}
+
         </main>
     )
 }
