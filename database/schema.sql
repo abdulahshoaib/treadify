@@ -113,21 +113,6 @@ CREATE TABLE Channels (
     (Type = 'feature' AND FeatureID IS NOT NULL))
 )
 
-CREATE TABLE Messages (
-    MessageID INT PRIMARY KEY IDENTITY(1,1),
-    ChannelID INT NOT NULL,
-    SenderID INT NOT NULL,
-    Content TEXT NOT NULL,
-    CreatedAt DATETIME DEFAULT GETDATE(),
-    EditedAt DATETIME DEFAULT NULL,
-    IsDeleted BIT DEFAULT 0,
-    ReplyToID INT DEFAULT NULL,
-
-    FOREIGN KEY (ChannelID) REFERENCES Channels(ChannelID) ON DELETE CASCADE,
-    FOREIGN KEY (SenderID) REFERENCES Users(UserID),
-    FOREIGN KEY (ReplyToID) REFERENCES Messages(MessageID)
-)
-
 CREATE TABLE ChannelMembers (
     MembershipID INT PRIMARY KEY IDENTITY(1,1),
     UserID INT NOT NULL,
