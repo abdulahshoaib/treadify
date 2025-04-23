@@ -67,15 +67,15 @@ export const login = async (req: Request, res: Response) => {
             channel: ChannelID,
             role: user[0].Name
         }
+        console.log(req.session.User)
 
-        console.log("New User session: " + req.session.User?.product + req.session.User?.username)
         return res.status(200).json({
             message: "Login successful",
-            sessionID: req.session.User?.id,
             redirect: `http://localhost:3000/${username}`,
         })
 
-    } catch (err: any) {
+    } catch (error: any) {
+        console.error(error.message)
         return res.status(500).json({ error: "Internal Server Error" })
     }
 }
