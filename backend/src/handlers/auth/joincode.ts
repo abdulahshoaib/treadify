@@ -18,7 +18,6 @@ export const validateCode = async (req: Request, res: Response) => {
         )
 
         if (result.length === 0){
-            console.log("Invalid code")
             return res.status(400).json({ error: "Invalid code" })
         }
 
@@ -39,11 +38,10 @@ export const validateCode = async (req: Request, res: Response) => {
             }
         }
 
-        console.log("Code is valid")
         return res.status(200).json({ message: "Code is valid", channelID: channelID })
 
-    } catch (err: any) {
-        console.log(err.message)
+    } catch (error: any) {
+        console.error(error.message)
         return res.status(500).json({ error: "Internal server error" })
     }
 }
@@ -87,8 +85,8 @@ export const generateCode = async (req: Request, res: Response, channelID: strin
             { code, channelID: channelID }
         )
 
-    } catch (err: any) {
-        console.log(err.message)
+    } catch (error: any) {
+        console.error(error.message)
         return res.status(500).json({ error: "Internal server error" })
     }
 }
