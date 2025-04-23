@@ -1,15 +1,17 @@
-import { Router } from "express";
-import Product from "../handlers/product/product.ts";
+import { Router } from "express"
+import Product from "../handlers/product/product.ts"
 
-const router = Router();
+const router = Router()
 
-router.post("/", Product.createProductChannel as any);
-router.post("/features", Product.addFeature as any);
-router.patch("/deprecate", Product.deprecateChannel as any);
-router.patch("/features/deadline", Product.updateFeatureDeadline as any);
-router.get("/deadline", Product.getChannelDeadline as any);
-router.get("/members", Product.getChannelMembers as any);
-router.get("/goals", Product.getChannelGoals as any);
-router.get("/report", Product.getChannelReport as any);
+router.post("/", Product.createProductChannel as any)
+router.get("/features", Product.getFeatures as any)
+router.post("/features", Product.addFeature as any)
+router.patch("/deprecate", Product.deprecateChannel as any)
+router.patch("/features/deadline", Product.updateFeatureDeadline as any)
+router.get("/deadline", Product.getChannelDeadline as any)
+router.get("/members", Product.getChannelMembers as any)
+router.get("/tl", Product.getTL as any)
+router.get("/goals", Product.getChannelGoals as any)
+router.get("/report", Product.getChannelReport as any)
 
-export default router;
+export default router
