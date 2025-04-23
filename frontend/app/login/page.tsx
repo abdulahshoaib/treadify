@@ -13,13 +13,14 @@ import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 
 export default function LoginPage() {
-    const router = useRouter()
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState("")
     const [available, setIsAvailable] = useState<boolean | null>(null)
     const [checking, setChecking] = useState(false)
+
+    const router = useRouter()
 
     useEffect(() => {
         if (!username) {
@@ -74,12 +75,11 @@ export default function LoginPage() {
                 setIsLoading(false)
                 setPassword("")
             } else {
-                console.log(data.message)
+                toast.success("Login successful: " + data.redirect)
                 router.push(data.redirect)
-                toast.success("Login successful")
             }
         } catch (err: any) {
-            console.error("Login error:", err)
+            console.log("Login error:", err)
             setError(err.message)
         } finally {
             setIsLoading(false)
@@ -251,7 +251,7 @@ export default function LoginPage() {
                                         />
                                         {error && (
                                             <div className="text-sm text-red-500 mt-2 ml-2">
-                                            {error}
+                                                {error}
                                             </div>
                                         )}
                                     </div>
