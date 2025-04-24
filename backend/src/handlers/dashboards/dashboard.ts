@@ -26,7 +26,8 @@ export const getDashboard = async (req: Request, res: Response) => {
             success: true,
             role: userRes[0].Name,
             username: userRes[0].Username,
-            productID: req.session.User?.product
+            productID: req.session.User?.product,
+            featureID: req.session.User?.feature
         });
 
     } catch (err: any) {
