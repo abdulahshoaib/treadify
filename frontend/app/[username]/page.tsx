@@ -6,10 +6,6 @@ import DevDashboard from "@/components/DevDashboard"
 import TLDashboard from "@/components/TLDashboard"
 import PMDashboard from "@/components/PMDashboard"
 
-type Repo = {
-    name: string
-}
-
 export default async function DashboardPage({ params }: { params: { username: string } }) {
     const headerList = await headers()
     const cookie = headerList.get("cookie") || ""
@@ -37,13 +33,22 @@ export default async function DashboardPage({ params }: { params: { username: st
 
     if (!dashboardRes.ok) console.log("data: " + data.error)
 
+
     switch (data.role) {
         case "Developer":
             return <DevDashboard />
         case "Technical Lead":
-            return <TLDashboard />
+            const featRes = await fetch(`http://localhost:5000/featurechannel`, {
+                method: "GET",
+                headers: {
+                    Accept: "application/json",
+                    Cookie: cookie
+                },
+            })
+            const featData = await featRes.json()
+            return <TLDashboard data={featData} />
         case "Product Manager":
-            console.log("productID: "+productID)
+            console.log("productID: " + productID)
             let repoData = null
             if (!productID) {
                 const repoRes = await fetch("http://localhost:5000/user/repos", {
@@ -56,11 +61,11 @@ export default async function DashboardPage({ params }: { params: { username: st
 
                 if (!repoRes.ok) {
                     if (repoRes.status === 401) redirect("/login")
-                    throw new Error(`Failed to fetch repos: ${repoRes.status}`)
+                    // throw new Error(`Failed to fetch repos: ${repoRes.status}`)
                 }
                 repoData = await repoRes.json()
             }
-            const repos = repoData?.data.repositories || []
+            const repos = Array.isArray(repoData) ? repoData.data.repositories : []
 
             let productChannelData = null
             if (productID) {
