@@ -1,5 +1,3 @@
-import { useRouter } from "next/router"
-
 export async function createProductChannel(
     Name: string,
     RepoName: string,
