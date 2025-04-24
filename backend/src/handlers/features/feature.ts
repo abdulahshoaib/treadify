@@ -1,11 +1,12 @@
 import axios from "axios"
 import type { Request, Response } from "express"
 import { query } from "../../database/query.ts"
-import { hasPermission } from "../RABC.ts"
 
 const createFeatureGoals = async (req: Request, res: Response) => {
-    if (!req.session.User)
+    if (!req.session.User) {
+        console.log("UnAuthorized")
         return res.status(401).json({ error: "Unauthorized Access" })
+    }
 
     try {
         const FeatureID = req.session.User?.feature
@@ -30,7 +31,6 @@ const createFeatureGoals = async (req: Request, res: Response) => {
     }
 }
 
-// frontend api call to github to get the user all his commits and then send SHA here
 const commitToGoal = async (req: Request, res: Response) => {
     if (!req.session.User)
         return res.status(401).json({ error: "Unauthorized Access" })
@@ -113,31 +113,158 @@ const getFeatureChannel = async (req: Request, res: Response) => {
     if (!req.session.User)
         return res.status(401).json({ error: "Unauthorized Access" })
 
-    // no need for RBAC all users can get
-
     try {
-        const FeatureID = req.session.User?.feature
+        const UserID = req.session.User.id
+        const FeatureID = req.session.User.feature
 
         if (!FeatureID)
             return res.status(403).json({ error: "No feature assigned in session" })
 
-        const result = await query("SELECT * FROM Features WHERE FeatureID = @FeatureID", { FeatureID })
+        const featureInfo = await query(`
+            SELECT
+                f.FeatureID,
+                f.Name AS FeatureName,
+                f.Description AS FeatureDesc,
+                CONVERT(VARCHAR, f.Deadline, 23) AS FeatureDeadline,
+                p.ProductID,
+                p.Name AS ProductName,
+                p.Description AS ProductDesc,
+                CONVERT(VARCHAR, p.Deadline, 23) AS ProductDeadline,
+                gr.RepoOwner,
+                gr.RepoName,
+                gr.RepoURL
+            FROM Features f
+            JOIN Products p ON f.ProductID = p.ProductID
+            LEFT JOIN GitHubRepositories gr ON p.ProductID = gr.ProductID
+            WHERE f.FeatureID = @FeatureID AND f.TLID = @UserID
+        `, { FeatureID, UserID })
 
-        if (!result.length)
+        if (featureInfo.length === 0) {
             return res.status(404).json({ error: "Feature channel not found" })
+        }
 
-        return res.json({ message: `Feature channel details for ${FeatureID}`, data: result })
+        const productData = featureInfo[0]
+
+        const activeInvite = await query(`
+            SELECT TOP 1 ci.Code
+            FROM ChannelInvites ci
+            JOIN Channels c ON ci.ChannelID = c.ChannelID
+            WHERE c.ProductID = @ProductID
+            ORDER BY ci.CreatedAt DESC
+        `, { ProductID: req.session.User?.product })
+
+        let repoStats = null
+        if (productData.RepoURL) {
+            try {
+                repoStats = await axios.get(
+                    `https://api.github.com/repos/${productData.RepoOwner}/${productData.RepoName}`,
+                    {
+                        headers: {
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    }
+                ).then(res => res.data)
+                    .catch(err => {
+                        console.error("GitHub API error:", err)
+                        return null
+                    })
+            } catch (error) {
+                console.error("Failed to fetch repository stats:", error)
+            }
+        }
+
+        const goals = await query(`
+            SELECT
+                g.GoalID AS id,
+                g.Name AS name,
+                g.Description AS description,
+                LOWER(g.Status) AS status,
+                u.Username AS assignedTo,
+                CONVERT(VARCHAR, g.Deadline, 23) AS deadline,
+                ISNULL(
+                    (SELECT COUNT(*) FROM Commits c WHERE c.GoalID = g.GoalID AND c.Status = 'accepted'), 0
+                ) AS completedTasks,
+                ISNULL(
+                    (SELECT COUNT(*) FROM Commits c WHERE c.GoalID = g.GoalID), 0
+                ) AS totalTasks,
+                CAST(CASE
+                    WHEN (SELECT COUNT(*) FROM Commits c WHERE c.GoalID = g.GoalID) = 0 THEN 0
+                    ELSE ((SELECT COUNT(*) FROM Commits c WHERE c.GoalID = g.GoalID AND c.Status = 'accepted') * 100.0 /
+                         (SELECT COUNT(*) FROM Commits c WHERE c.GoalID = g.GoalID))
+                END AS INT) AS progress
+            FROM Goals g
+            LEFT JOIN Users u ON g.CreatedByID = u.UserID
+            WHERE g.FeatureID = @FeatureID
+            ORDER BY g.Deadline ASC
+        `, { FeatureID })
+
+        const activities = await query(`
+            SELECT TOP 5
+                c.CommitID AS id,
+                'commit' AS type,
+                c.GitHubMessage AS message,
+                u.Username AS author,
+                CONVERT(VARCHAR, c.CreatedAt, 23) AS timestamp,
+                c.CommitURL AS url
+            FROM Commits c
+            JOIN Goals g ON c.GoalID = g.GoalID
+            JOIN Users u ON c.DevID = u.UserID
+            WHERE g.FeatureID = @FeatureID
+            ORDER BY c.CreatedAt DESC
+        `, { FeatureID })
+
+
+        const response = {
+            product: {
+                id: productData.ProductID,
+                name: productData.ProductName,
+                description: productData.ProductDesc,
+                deadline: productData.ProductDeadline,
+                inviteCode: activeInvite[0]?.Code || "NOCODE",
+                repository: {
+                    name: `${productData.RepoOwner}/${productData.RepoName}`,
+                    url: productData.RepoURL,
+                    ...(repoStats ? {
+                        stars: repoStats.stargazers_count,
+                        forks: repoStats.forks_count,
+                        watchers: repoStats.watchers_count,
+                        lastUpdated: repoStats.updated_at
+                    } : {
+                        stars: 0,
+                        forks: 0,
+                        watchers: 0,
+                        lastUpdated: new Date().toISOString()
+                    })
+                }
+            },
+            goals: goals.map(goal => ({
+                ...goal,
+                completedTasks: goal.completedTasks || 0,
+                totalTasks: goal.totalTasks || 0,
+                progress: goal.progress || 0
+            })),
+            activities: activities
+        }
+
+        return res.json({
+            success: true,
+            message: `Feature channel details for ${productData.FeatureName}`,
+            data: response
+        })
+
     } catch (err: any) {
         console.error(err.message)
-        return res.status(500).json({ error: err.message })
+        return res.status(500).json({
+            success: false,
+            error: "Failed to fetch feature channel details",
+            details: err.message
+        })
     }
 }
 
 const getFeatureMembers = async (req: Request, res: Response) => {
     if (!req.session.User)
         return res.status(401).json({ error: "Unauthorized Access" })
-
-    // no need for RBAC all users can get
 
     try {
         const FeatureID = req.session.User?.feature
@@ -228,9 +355,61 @@ const updateCommit = async (req: Request, res: Response) => {
     }
 }
 
+const getCommit = async (req: Request, res: Response) => {
+    if (!req.session.User) {
+        return res.status(401).json({ error: "Unauthorized Access" });
+    }
+
+    try {
+        const FeatureID = req.session.User?.feature;
+
+        const result = await query(`
+            SELECT
+                c.CommitID,
+                c.GitHubCommitSHA,
+                c.GitHubMessage,
+                c.CommitURL,
+                c.CreatedAt AS submittedAt,
+                c.Status,
+                c.Comments AS feedback,
+                g.GoalID,
+                g.Name AS goalName,
+                f.FeatureID,
+                f.Name AS featureName,
+                u.Username AS submittedBy
+            FROM Commits c
+            JOIN Goals g ON c.GoalID = g.GoalID
+            JOIN Features f ON g.FeatureID = f.FeatureID
+            JOIN Users u ON c.DevID = u.UserID
+            WHERE f.FeatureID = @FeatureID;
+        `, { FeatureID })
+
+        const submissions = result.map((commit: any) => ({
+            id: commit.CommitID.toString(),
+            commitHash: commit.GitHubCommitSHA,
+            commitMessage: commit.GitHubMessage,
+            commitUrl: commit.CommitURL,
+            submittedAt: commit.submittedAt.toISOString(), // Ensure date is in ISO string format
+            status: commit.Status as "pending" | "accepted" | "rejected",
+            feedback: commit.feedback,
+            goalId: commit.GoalID.toString(),
+            goalName: commit.goalName,
+            featureId: commit.FeatureID.toString(),
+            featureName: commit.featureName,
+            submittedBy: commit.submittedBy
+        }));
+
+        return res.json(submissions);
+    } catch (error: any) {
+        console.error(error);
+        return res.status(500).json({ error: "Server Error" });
+    }
+}
+
 export default {
     createFeatureGoals,
     commitToGoal,
+    getCommit,
     getFeatureChannel,
     getFeatureMembers,
     getFeatureGoals,
