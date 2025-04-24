@@ -260,12 +260,13 @@ export default function FeaturesClient({
             {features.length === 0 ? (
                 <div className="flex items-center justify-center h-[60vh]">
                     <Button
+                        className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white border-0 shadow-lg shadow-blue-900/20 px-8 py-6 text-lg tracking-tighter"
                         onClick={openCreateFeatureDialog}
-                        className="text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 px-6 py-3 text-lg shadow-lg shadow-blue-900/20"
                     >
-                        <Plus className="mr-2 h-5 w-5" />
-                        Create Your First Feature
+                        <Plus className="h-4 w-4 m-auto" />
+                        Create Feature
                     </Button>
+
                 </div>
             ) : (
 

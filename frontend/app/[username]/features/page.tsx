@@ -1,5 +1,6 @@
 import { headers } from "next/headers"
 import { redirect, notFound } from "next/navigation"
+import { Layers } from "lucide-react"
 
 import FeaturesClient from "./features-client"
 
@@ -24,6 +25,7 @@ export default async function FeaturesPage({ params }: { params: { username: str
 
     const data = await dashboardRes.json()
     const loggedInUsername = data.username
+    const product = data.productID
     const role = data.role
 
     const param = await params
@@ -69,14 +71,35 @@ export default async function FeaturesPage({ params }: { params: { username: str
     const featData = await featureRes.json()
     console.log("Features: ", featData)
 
-
-
     const tlData = TLData.data
     const featureData = featData.data
 
-    return (
-        <main className="relative z-10 flex-1 p-5">
-            <FeaturesClient initialFeatures={featureData} TechLeads={tlData} />
-        </main>
-    )
+    if (!product) {
+        return (
+
+            <main className="relative z-10 flex-1 p-6">
+                <div className="flex items-center justify-between mb-8">
+                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-400">
+                        Features
+                    </h1>
+                </div>
+                <div className="flex flex-col items-center justify-center h-[60vh] text-center">
+                    <div className="max-w-md space-y-6">
+                        <Layers className="mx-auto h-12 w-12 text-slate-400" />
+                        <h2 className="text-2xl font-bold text-white">No Product Selected</h2>
+                        <p className="text-slate-400">
+                            You need to select or create a product channel first to manage features.
+                        </p>
+                    </div>
+                </div>
+            </main>
+        )
+    }
+    else {
+        return (
+            <main className="relative z-10 flex-1 p-5">
+                <FeaturesClient initialFeatures={featureData} TechLeads={tlData} />
+            </main>
+        )
+    }
 }
