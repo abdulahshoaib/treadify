@@ -42,8 +42,8 @@ function DateToString(date: Date | undefined): string {
 }
 
 export default function GoalsClient(goalData: any) {
+    const [goals, setGoals] = useState<Goal[]>(goalData ?? [])
     const [filterStatus, setFilterStatus] = useState<string>("all")
-    const [goals, setGoals] = useState<Goal[]>(goalData)
 
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [newGoalName, setNewGoalName] = useState("")
@@ -74,30 +74,29 @@ export default function GoalsClient(goalData: any) {
         return diffDays
     }
 
-    const handleCreateGoal = () => {
-        if (!newGoalName || !newGoalDeadline) {
-            toast.error("Please fill in all required fields")
-            return
+    const handleCreateGoal = async () => {
+        const payload = {
+            name: newGoalName,
+            description: newGoalDescription,
+            deadline: newGoalDeadline,
+        };
+
+        try {
+            const res = await fetch("/api/create-goal", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+            });
+
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.error || "Something went wrong");
+            toast.success("Goal created successfully!");
+            window.location.reload();
+        } catch (error: any) {
+            toast.error("Error creating goal: " + error.message);
         }
-
-        const newGoal: Goal = {
-            id: `goal-${goals.length + 1}`,
-            GoalName: newGoalName,
-            Description: newGoalDescription,
-            Deadline: DateToString(newGoalDeadline),
-            CompletedAt: null,
-            Status: "open",
-            CreatedBy: "Current User",
-            FeatureName: "My Feature",
-        }
-
-        setGoals([...goals, newGoal])
-        setIsDialogOpen(false)
-        toast.success("Goal created successfully!")
-
-        setNewGoalName("")
-        setNewGoalDescription("")
-        setNewGoalDeadline(undefined)
     }
 
     const goalsArray = Array.isArray(goals)
@@ -109,8 +108,7 @@ export default function GoalsClient(goalData: any) {
             return false;
         }
         return true;
-    });
-
+    })
 
     return (
         <main className="relative z-10 flex-1 p-6">
@@ -214,12 +212,17 @@ export default function GoalsClient(goalData: any) {
                 ) : (
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {filteredGoals.map((goal) => (
-                            <Card key={goal.id} className="overflow-hidden border-slate-800/50 bg-slate-900/50 text-white">
+                            <Card
+                                key={goal.id}
+                                className="flex flex-col h-full overflow-hidden border-slate-800/50 bg-slate-900/50 text-white"
+                            >
                                 <CardHeader className="pb-3">
                                     <div className="flex justify-between items-start">
                                         <div>
                                             <CardTitle className="flex items-center">
-                                                {goal.Status === "completed" && <CheckCircle className="mr-2 h-5 w-5 text-green-500" />}
+                                                {goal.Status === "completed" && (
+                                                    <CheckCircle className="mr-2 h-5 w-5 text-green-500" />
+                                                )}
                                                 {goal.GoalName}
                                             </CardTitle>
                                             <CardDescription className="mt-1 text-slate-400">
@@ -237,15 +240,20 @@ export default function GoalsClient(goalData: any) {
                                                 {getDaysRemaining(goal.Deadline)} days left
                                             </Badge>
                                         ) : (
-                                            <Badge variant="outline" className="ml-auto border-green-800/50 text-green-400">
+                                            <Badge
+                                                variant="outline"
+                                                className="ml-auto border-green-800/50 text-green-400"
+                                            >
                                                 Completed
                                             </Badge>
                                         )}
                                     </div>
                                 </CardHeader>
-                                <CardContent>
+
+                                <CardContent className="">
                                     <p className="text-sm text-slate-400">{goal.Description}</p>
                                 </CardContent>
+
                                 <CardFooter className="flex justify-between border-t border-slate-800/50 bg-slate-900/80 px-6 py-3">
                                     <div className="flex items-center">
                                         <Avatar className="h-6 w-6 mr-2">

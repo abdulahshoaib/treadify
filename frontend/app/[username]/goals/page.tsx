@@ -1,5 +1,6 @@
 import { headers } from "next/headers"
 import { redirect, notFound } from "next/navigation"
+import { Target } from "lucide-react"
 
 import GoalsClient from "./goals-client"
 
@@ -43,6 +44,8 @@ export default async function GoalsPage({ params }: { params: { username: string
     const data = await dashboardRes.json()
     const loggedInUsername = data.username
     const role = data.role
+    const product = data.product
+    const feature = data.featureID
 
     const param = await params
     console.log(loggedInUsername)
@@ -52,6 +55,27 @@ export default async function GoalsPage({ params }: { params: { username: string
 
     if (role !== "Developer" && role !== "Technical Lead") {
         notFound()
+    }
+
+    if (!feature) {
+        return (
+            <main className="relative z-10 flex-1 p-6">
+                <div className="flex items-center justify-between mb-8">
+                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-400">
+                        Goals
+                    </h1>
+                </div>
+                <div className="flex flex-col items-center justify-center h-[60vh] text-center">
+                    <div className="max-w-md space-y-6">
+                        <Target className="mx-auto h-12 w-12 text-slate-400" />
+                        <h2 className="text-2xl font-bold text-white">No Feature Selected</h2>
+                        <p className="text-slate-400">
+                            You need to select a feature channel first to manage features.
+                        </p>
+                    </div>
+                </div>
+            </main>
+        )
     }
 
     return (
