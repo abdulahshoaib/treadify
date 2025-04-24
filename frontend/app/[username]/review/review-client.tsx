@@ -33,52 +33,12 @@ type Submission = {
     submittedBy: string
 }
 
-export default function ReviewClient() {
-    const [submissions, setSubmissions] = useState<Submission[]>([
-        {
-            id: "submission-1",
-            commitHash: "a1b2c3d",
-            commitMessage: "Implement login form with validation",
-            commitUrl: "https://github.com/username/repo/commit/a1b2c3d",
-            submittedAt: "2025-05-05T10:30:00Z",
-            status: "pending",
-            feedback: null,
-            goalId: "goal-1",
-            goalName: "Implement login form",
-            featureId: "feature-1",
-            featureName: "User Authentication",
-            submittedBy: "John Doe",
-        },
-        {
-            id: "submission-2",
-            commitHash: "e4f5g6h",
-            commitMessage: "Add password reset functionality",
-            commitUrl: "https://github.com/username/repo/commit/e4f5g6h",
-            submittedAt: "2025-05-06T14:20:00Z",
-            status: "accepted",
-            feedback: "Great work! Clean code and well-documented.",
-            goalId: "goal-2",
-            goalName: "Add password reset",
-            featureId: "feature-1",
-            featureName: "User Authentication",
-            submittedBy: "Jane Smith",
-        },
-        {
-            id: "submission-3",
-            commitHash: "i7j8k9l",
-            commitMessage: "Create dashboard layout with responsive design",
-            commitUrl: "https://github.com/username/repo/commit/i7j8k9l",
-            submittedAt: "2025-05-07T09:15:00Z",
-            status: "rejected",
-            feedback: "The layout is not responsive on mobile devices. Please fix and resubmit.",
-            goalId: "goal-3",
-            goalName: "Create dashboard layout",
-            featureId: "feature-2",
-            featureName: "Dashboard UI",
-            submittedBy: "Alex Johnson",
-        },
-    ])
+interface ReviewClientProps {
+  initialSubmissions?: Submission[]
+}
 
+export default function ReviewClient({ initialSubmissions = [] }: ReviewClientProps) {
+    const [submissions, setSubmissions] = useState<Submission[]>(Array.isArray(initialSubmissions) ? initialSubmissions : [])
     const [activeTab, setActiveTab] = useState("pending")
     const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false)
     const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null)
@@ -123,12 +83,18 @@ export default function ReviewClient() {
             return
         }
 
+        const updatedStatus = action === "accept" ? "accepted" : "rejected"
+
         setSubmissions((prev) =>
-            prev.map((sub) => (sub.id === selectedSubmission.id ? { ...sub, status: action, feedback } : sub)),
+            prev.map((sub) =>
+                sub.id === selectedSubmission.id
+                    ? { ...sub, status: updatedStatus, feedback }
+                    : sub,
+            ),
         )
 
         setFeedbackDialogOpen(false)
-        toast.success(`Submission ${action === "accept" ? "accepted" : "rejected"} successfully`)
+        toast.success(`Submission ${updatedStatus === "accepted" ? "accepted" : "rejected"} successfully`)
     }
 
     const filteredSubmissions = submissions.filter((sub) => {
