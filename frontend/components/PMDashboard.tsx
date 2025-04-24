@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Plus, Github, ArrowUpRight, Star, GitFork, Eye, Layers, BarChart3 } from "lucide-react"
+import { Copy, Plus, Github, ArrowUpRight, Star, GitFork, Eye, Layers, BarChart3 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -199,9 +199,22 @@ export default function PMDashboard({ repos, data: initialData }: any) {
                 <div className="space-y-6">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
-                            <h1 className="text-4xl tracking-tight font-bold text-slate-300 mt-14">
-                                {product.name}
-                            </h1>
+                            <div className="flex items-center gap-4 mt-14">
+                                <h1 className="text-4xl tracking-tight font-bold text-slate-300">
+                                    {product.name}
+                                </h1>
+                                <Button
+                                    onClick={() => {
+                                        toast.info("Join Code Copied")
+                                        navigator.clipboard.writeText(product.inviteCode)
+                                    }}
+                                    className="text-sm text-blue-400 border border-blue-400 px-2 py-1 rounded hover:bg-blue-400 hover:text-white transition bg-slate-900"
+                                    title="Click to copy invite code"
+                                >
+                                    {product.inviteCode}
+                                    <Copy className="w-3 h-3"/>
+                                </Button>
+                            </div>
                             <p className="text-slate-400 mt-1">{product.description || 'No description provided'}</p>
                             <p className="text-xs text-slate-500 mt-1">Deadline: {formatDate(product.deadline)}</p>
                         </div>
