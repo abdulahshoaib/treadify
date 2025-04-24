@@ -1,15 +1,16 @@
-import { Router } from "express";
-import Feature from "../handlers/features/feature.ts";
+import { Router } from "express"
+import Feature from "../handlers/features/feature.ts"
 
-const router = Router();
+const router = Router()
 
-router.post("/goal", Feature.createFeatureGoals);
-router.post("/commit/:goalID", Feature.commitToGoal);
-router.get("/", Feature.getFeatureChannel);
-router.get("/members", Feature.getFeatureMembers);
-router.get("/goals", Feature.getFeatureGoals);
-router.patch("/commit/:goalID", Feature.updateCommit);
-router.patch("/goal/:goalID", Feature.updateCommit);
+router.post("/goal", Feature.createFeatureGoals as any)
+router.post("/commit/:goalID", Feature.commitToGoal as any)
+router.get("/", Feature.getFeatureChannel as any)
+router.get("/members", Feature.getFeatureMembers as any)
+router.get("/goals", Feature.getFeatureGoals as any)
+router.patch("/commit/:goalID", Feature.updateCommit as any)
+router.get("/commit", Feature.getCommit as any)
+router.patch("/goal/:goalID", Feature.updateCommit as any)
 
-export default router;
+export default router
 
