@@ -46,6 +46,7 @@ const createProductChannel = async (req: Request, res: Response) => {
         if (!ProductID)
             return res.status(401).json({ error: "Failed to create product" })
 
+
         await query(
             `INSERT INTO GitHubRepositories (ProductID, RepoOwner, RepoName, RepoURL, DefaultBranch)
              VALUES (@ProductID, @RepoOwner, @RepoName, @RepoURL, @DefaultBranch)`,
@@ -63,6 +64,8 @@ const createProductChannel = async (req: Request, res: Response) => {
         if (!ChannelID)
             return res.status(401).json({ error: "Failed to create channel" })
 
+        const inviteCode = await generateInviteCode(ChannelID)
+
         await query(
             `INSERT INTO ChannelMembers (UserID, ProductID, Role)
              VALUES (@UserID, @ProductID, 'PM')`,
@@ -73,12 +76,46 @@ const createProductChannel = async (req: Request, res: Response) => {
             Name,
             message: `Created product: ${Name} with GitHub repo`,
             ProductID,
-            ChannelID
+            ChannelID,
+            InviteCode: inviteCode
         })
     } catch (error: any) {
         console.error(error.message)
         return res.status(500).json({ error: error.message })
     }
+}
+
+const generateInviteCode = async (channelID: string): Promise<string> => {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
+
+    const genCode = () => {
+        let code = ""
+        for (let i = 0; i < 8; ++i)
+            code += chars.charAt(Math.floor(Math.random() * chars.length))
+        return code
+    }
+
+    let code = ""
+    let unique = false
+    while (!unique) {
+        const candidate = genCode()
+        const result = await query(`
+            SELECT 1 FROM ChannelInvites WHERE Code = @code`,
+            { code: candidate }
+        )
+        if (result.length === 0) {
+            unique = true
+            code = candidate
+        }
+    }
+
+    await query(`
+        INSERT INTO ChannelInvites (Code, ChannelID)
+        VALUES (@code, @channelID)`,
+        { code, channelID }
+    )
+
+    return code
 }
 
 const addFeature = async (req: Request, res: Response) => {
@@ -442,12 +479,23 @@ const getChannelDetails = async (req: Request, res: Response) => {
             ORDER BY c.CreatedAt DESC
         `, { ProductID })
 
+
+        const activeInvite = await query(`
+            SELECT TOP 1 Code
+            FROM ChannelInvites
+            WHERE ChannelID IN (
+                SELECT ChannelID FROM Channels WHERE ProductID = @ProductID
+            )
+            ORDER BY CreatedAt DESC
+            `, { ProductID })
+
         const response = {
             product: {
                 id: productData.ProductID,
                 name: productData.Name,
                 description: productData.Description,
                 deadline: productData.deadline,
+                inviteCode: activeInvite[0]?.Code || null,
                 repository: {
                     name: `${productData.RepoOwner}/${productData.RepoName}`,
                     url: productData.RepoURL,
